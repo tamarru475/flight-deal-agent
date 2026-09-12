@@ -1,0 +1,26 @@
+{
+  "search_metadata": { "status": "Success" },
+  "search_parameters": { "adults": 2, "currency": "NZD", "travel_class": 2 },
+  "other_flights": [
+    {
+      "type": "Round trip", "price": 3000, "total_duration": 850, "departure_token": "synthetic-token",
+      "flights": [
+        { "departure_airport": { "id": "AKL", "time": "2027-05-01 10:15" },
+          "arrival_airport": { "id": "HND", "time": "2027-05-01 18:15" },
+          "duration": 660, "airline": "Example Air", "flight_number": "EX 99", "travel_class": "Premium Economy" },
+        { "departure_airport": { "id": "NRT", "time": "2027-05-01 21:15" },
+          "arrival_airport": { "id": "KIX", "time": "2027-05-01 22:15" },
+          "duration": 60, "airline": "Example Air", "flight_number": "EX 10", "travel_class": "Economy", "overnight": false }
+      ],
+      "layovers": [{ "duration": 130, "id": "HND", "name": "Narita Airport" }]
+    },
+    {
+      "type": "Round trip", "total_duration": 660, "departure_token": "synthetic-unpriced",
+      "flights": [
+        { "departure_airport": { "id": "AKL", "time": "2027-05-01 10:15" },
+          "arrival_airport": { "id": "NRT", "time": "2027-05-01 18:15" },
+          "duration": 660, "travel_class": "Unexpected cabin" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/FlightDeals/FlightDeals.csproj" />
+  <Project Path="tests/FlightDeals.Tests/FlightDeals.Tests.csproj" />
+</Solution>
