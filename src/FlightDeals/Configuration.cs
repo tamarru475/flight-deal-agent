@@ -7,14 +7,27 @@ public sealed class AppSettings
     public bool LiveSearchEnabled { get; init; }
     public int MonthlyCreditLimit { get; init; } = 200;
     public int ReserveCredits { get; init; } = 50;
-    public SearchProfile Profile { get; init; } = new();
+    public SearchProfile Profile { get; init; } = new(); // Legacy single-profile configuration.
+    public bool SchedulerEnabled { get; init; }
+    public MonitoredProfile[] Profiles { get; init; } = [];
+    public MonitoredProfile[] MonitoredProfiles => Profiles.Length > 0 ? Profiles : [new() { Search = Profile }];
+    public SearchProfile DefaultProfile => MonitoredProfiles[0].Search;
     public ManualBaseline[] ManualBaselines { get; init; } = [];
 
     public void Validate()
     {
         if (MonthlyCreditLimit is < 2 or > 200 || ReserveCredits < 50 || MonthlyCreditLimit + ReserveCredits > 250)
             throw new ScanException("Budget must leave at least 50 credits and allow no more than 200.");
-        ValidateProfile(Profile);
+        var profiles = MonitoredProfiles;
+        if (profiles.Select(p => p.Search.Id).Distinct().Count() != profiles.Length)
+            throw new ScanException("Search profile IDs must be unique.");
+        foreach (var profile in profiles)
+        {
+            ValidateProfile(profile.Search);
+            if (!double.IsFinite(profile.TargetIntervalHours) || profile.TargetIntervalHours < 1
+                || profile.TargetIntervalHours > 8760 || profile.Priority < 0)
+                throw new ScanException("Profile intervals must be between 1 and 8760 hours; priorities must be nonnegative.");
+        }
         ValidateBaselines();
     }
 

@@ -6,7 +6,14 @@ public static class FlightDealsEndpoints
     {
         var settings = app.Services.GetRequiredService<AppSettings>();
         app.MapGet("/health", () => Results.Ok(new { status = "alive" }));
-        app.MapGet("/profile", () => settings.Profile);
+        app.MapGet("/profile", () => settings.DefaultProfile);
+        app.MapGet("/profiles", () => settings.MonitoredProfiles);
+        app.MapPost("/profiles/{profileId}/scans", async (string profileId, HttpRequest request, ScanService scans, CancellationToken ct) =>
+        {
+            if (request.Headers["X-Confirm-Scan"] != "true")
+                return Results.BadRequest(new { error = "Send X-Confirm-Scan: true. A scan reserves at most two credits." });
+            return Results.Ok(await scans.Run(profileId, ct));
+        });
         app.MapGet("/baselines", () => settings.ManualBaselines);
         app.MapPost("/scans", async (HttpRequest request, ScanService scans, CancellationToken ct) =>
         {

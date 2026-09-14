@@ -9,6 +9,9 @@ public sealed class PostgresStore(NpgsqlDataSource database) : IScanStore
     public async Task Initialize(CancellationToken ct)
     {
         await using var command = database.CreateCommand("""
+            CREATE TABLE IF NOT EXISTS scheduler_state (
+                singleton boolean PRIMARY KEY DEFAULT true CHECK (singleton),
+                next_dispatch timestamptz NOT NULL);
             CREATE TABLE IF NOT EXISTS quota_state (
                 singleton boolean PRIMARY KEY DEFAULT true CHECK (singleton),
                 period_end date NOT NULL, accounted_credits integer NOT NULL CHECK (accounted_credits >= 0),
@@ -94,7 +97,24 @@ public sealed class PostgresStore(NpgsqlDataSource database) : IScanStore
             return await ReadBudgetRow(reader, ct);
         }
 
-        public async Task Reserve(BudgetState state, ScanRun run, CancellationToken ct)
+        public async Task<ScheduleState> ReadSchedule(CancellationToken ct)
+        {
+            // Existing run history supplies restart-safe per-profile scheduling, including failed runs.
+            var lastScans = new Dictionary<string, DateTimeOffset>(StringComparer.Ordinal);
+            await using (var command = new NpgsqlCommand(
+                "SELECT payload->'profile'->>'id', max(started_at) FROM scan_runs GROUP BY payload->'profile'->>'id'", connection))
+            await using (var reader = await command.ExecuteReaderAsync(ct))
+            {
+                while (await reader.ReadAsync(ct))
+                    lastScans.Add(reader.GetString(0), reader.GetFieldValue<DateTimeOffset>(1));
+            }
+            await using var dispatch = new NpgsqlCommand("SELECT next_dispatch FROM scheduler_state", connection);
+            var value = await dispatch.ExecuteScalarAsync(ct);
+            var nextDispatch = value is DateTime date ? new DateTimeOffset(date) : DateTimeOffset.MinValue;
+            return new ScheduleState(lastScans, nextDispatch);
+        }
+
+        public async Task Reserve(BudgetState state, ScanRun run, CancellationToken ct, DateTimeOffset? nextDispatch = null)
         {
             await using var tx = await connection.BeginTransactionAsync(ct);
             await using var quota = new NpgsqlCommand("""
@@ -110,6 +130,15 @@ public sealed class PostgresStore(NpgsqlDataSource database) : IScanStore
             insert.Parameters.AddWithValue(run.StartedAt);
             insert.Parameters.AddWithValue(NpgsqlDbType.Jsonb, JsonSerializer.Serialize(run, JsonDefaults.Options));
             await insert.ExecuteNonQueryAsync(ct);
+            if (nextDispatch is not null)
+            {
+                await using var schedule = new NpgsqlCommand("""
+                    INSERT INTO scheduler_state(singleton,next_dispatch) VALUES(true,$1)
+                    ON CONFLICT(singleton) DO UPDATE SET next_dispatch=GREATEST(scheduler_state.next_dispatch,$1)
+                    """, connection, tx);
+                schedule.Parameters.AddWithValue(nextDispatch.Value);
+                await schedule.ExecuteNonQueryAsync(ct);
+            }
             await tx.CommitAsync(ct);
         }
 

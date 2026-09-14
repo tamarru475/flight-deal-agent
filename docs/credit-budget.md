@@ -6,5 +6,4 @@ The app verifies an active 250-credit Free Plan and its renewal date using the f
 
 Reservations are deliberately not refunded for cached responses, partial failures, or unused second requests. They are a conservative upper bound, not a count of actual SerpApi charges. Interrupted runs are marked failed when the next scan obtains the lock; their reservations remain. Keep this ledger and use a dedicated free account: independent clients or another installation with a separate database can spend credits outside this lock. Application accounting cannot disable billing at the provider; keep the account on its free plan without paid billing.
 
-At two credits per check, 200 credits permit at most 100 reserved checks per provider month. A single exact-date/cabin profile checked three times weekly would reserve roughly 26–28 credits monthly. Scheduling and priority allocation remain later work.
-
+At two credits per check, 200 credits permit at most 100 reserved checks per provider month. A single exact-date/cabin profile checked three times weekly would reserve roughly 26–28 credits monthly. Two profiles at that interval target roughly 52–56 credits monthly. The [scheduler](scheduling.md) spreads remaining credit slots over the remaining provider period; target intervals are not guarantees.

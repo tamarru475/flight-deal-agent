@@ -19,6 +19,7 @@ public static class ServiceRegistration
         services.AddSingleton<IScanStore>(s => s.GetRequiredService<PostgresStore>());
         AddSerpApi(services);
         services.AddSingleton<ScanService>();
+        services.AddHostedService<MonitoringWorker>();
         return services;
     }
 

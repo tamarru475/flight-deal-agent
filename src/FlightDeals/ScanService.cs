@@ -3,7 +3,8 @@ namespace FlightDeals;
 public interface IScanSession : IAsyncDisposable
 {
     Task<BudgetState?> ReadBudget(CancellationToken ct);
-    Task Reserve(BudgetState state, ScanRun run, CancellationToken ct);
+    Task<ScheduleState> ReadSchedule(CancellationToken ct);
+    Task Reserve(BudgetState state, ScanRun run, CancellationToken ct, DateTimeOffset? nextDispatch = null);
     Task SaveRun(ScanRun run, CancellationToken ct);
     Task Complete(ScanRun run, Observation observation, CancellationToken ct);
 }
@@ -15,18 +16,55 @@ public interface IScanStore
 
 public sealed class ScanService(IFlightProvider provider, IScanStore store, AppSettings settings, TimeProvider clock)
 {
-    public async Task<ScanRun> Run(CancellationToken ct)
+    public Task<ScanRun> Run(CancellationToken ct) => Run(settings.DefaultProfile.Id, ct);
+
+    public async Task<ScanRun> Run(string profileId, CancellationToken ct)
+    {
+        EnsureLiveSearch();
+        var profile = settings.MonitoredProfiles.SingleOrDefault(p => p.Search.Id == profileId)
+            ?? throw new ScanException("Unknown search profile.");
+        EnsureFutureDate(profile.Search);
+        await using var session = await store.OpenSession(ct);
+        return await ReserveAndScan(profile, session, ct);
+    }
+
+    public async Task<ScanRun?> RunDue(CancellationToken ct)
+    {
+        if (!settings.SchedulerEnabled || !settings.LiveSearchEnabled) return null;
+        await using var session = await store.OpenSession(ct);
+        var schedule = await session.ReadSchedule(ct);
+        var profile = SchedulePlanner.SelectDue(settings.MonitoredProfiles, schedule, clock.GetUtcNow());
+        if (profile is null) return null;
+        return await ReserveAndScan(profile, session, ct);
+    }
+
+    private void EnsureLiveSearch()
     {
         if (!settings.LiveSearchEnabled) throw new ScanException("Live search is disabled in configuration.");
-        var profile = settings.Profile;
+    }
+
+    private void EnsureFutureDate(SearchProfile profile)
+    {
         if (profile.OutboundDate <= DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime))
             throw new ScanException("Configure a future outbound date before scanning.");
-        await using var session = await store.OpenSession(ct);
+    }
+
+    private async Task<ScanRun> ReserveAndScan(MonitoredProfile monitored, IScanSession session, CancellationToken ct)
+    {
+        var profile = monitored.Search;
         var account = await provider.GetAccount(ct);
-        var state = Budget.Reserve(account, await session.ReadBudget(ct), settings, clock.GetUtcNow());
-        var run = new ScanRun(Id: Guid.NewGuid(), StartedAt: clock.GetUtcNow(), Profile: profile,
+        var now = clock.GetUtcNow();
+        var state = Budget.Reserve(account, await session.ReadBudget(ct), settings, now);
+        var nextDispatch = SchedulePlanner.NextDispatch(state, settings, now);
+        var run = new ScanRun(Id: Guid.NewGuid(), StartedAt: now, Profile: profile,
             Status: RunStatus.Running, ReservedCredits: Budget.CreditsPerScan, Attempts: []);
-        await session.Reserve(state, run, ct);
+        await session.Reserve(state, run, ct, nextDispatch);
+        return await ExecuteScan(run, session, ct);
+    }
+
+    private async Task<ScanRun> ExecuteScan(ScanRun run, IScanSession session, CancellationToken ct)
+    {
+        var profile = run.Profile;
         try
         {
             run = StartAttempt(run, "Outbound");

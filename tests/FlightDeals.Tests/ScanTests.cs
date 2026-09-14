@@ -70,7 +70,16 @@ internal sealed class MemoryStore : IScanStore, IScanSession
     public Observation? Observation;
     public Task<IScanSession> OpenSession(CancellationToken ct) => Task.FromResult<IScanSession>(this);
     public Task<BudgetState?> ReadBudget(CancellationToken ct) => Task.FromResult(Budget);
-    public Task Reserve(BudgetState state, ScanRun run, CancellationToken ct) { Budget = state; SavedRun = run; return Task.CompletedTask; }
+    public ScheduleState Schedule = new(new Dictionary<string, DateTimeOffset>(), DateTimeOffset.MinValue);
+    public Task<ScheduleState> ReadSchedule(CancellationToken ct) => Task.FromResult(Schedule);
+    public Task Reserve(BudgetState state, ScanRun run, CancellationToken ct, DateTimeOffset? nextDispatch = null)
+    {
+        Budget = state;
+        SavedRun = run;
+        Schedule.LastScans[run.Profile.Id] = run.StartedAt;
+        Schedule = Schedule with { NextDispatch = nextDispatch ?? Schedule.NextDispatch };
+        return Task.CompletedTask;
+    }
     public Task SaveRun(ScanRun run, CancellationToken ct) { SavedRun = run; return Task.CompletedTask; }
     public Task Complete(ScanRun run, Observation observation, CancellationToken ct) { SavedRun = run; Observation = observation; return Task.CompletedTask; }
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
