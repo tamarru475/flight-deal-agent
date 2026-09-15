@@ -1,0 +1,22 @@
+# Allow only build inputs; local secrets never enter the build context.
+**
+!Dockerfile
+!global.json
+!FlightDeals.slnx
+!src/
+!src/FlightDeals/
+!src/FlightDeals/*.cs
+!src/FlightDeals/FlightDeals.csproj
+!src/FlightDeals/appsettings.json
+!tests/
+!tests/FlightDeals.Tests/
+!tests/FlightDeals.Tests/*.cs
+!tests/FlightDeals.Tests/FlightDeals.Tests.csproj
+!tests/FlightDeals.Tests/Fixtures/
+!tests/FlightDeals.Tests/Fixtures/*.json
+**/bin
+**/obj
+**/.env
+**/*.env
+**/*.env.*
+**/secrets

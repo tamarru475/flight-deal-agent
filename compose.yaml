@@ -1,0 +1,55 @@
+name: flight-deal-agent
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:17.11-bookworm
+    env_file: ${FLIGHT_DEALS_DB_ENV_FILE:-./deploy/postgres.env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    image: flight-deal-agent:local
+    build:
+      context: .
+      target: runtime
+    env_file: ${FLIGHT_DEALS_APP_ENV_FILE:-./deploy/app.env}
+    volumes:
+      - type: bind
+        source: ${FLIGHT_DEALS_CONFIG_FILE:-./src/FlightDeals/appsettings.json}
+        target: /app/appsettings.json
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *logging
+    stop_grace_period: 30s
+
+  probe:
+    image: curlimages/curl:8.22.0
+    profiles: [tools]
+    network_mode: service:app
+    entrypoint: [curl]
+    logging: *logging
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    driver: bridge

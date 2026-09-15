@@ -30,6 +30,7 @@ Mixed cabins are descriptive, with no automatic penalty; main-long-haul premium 
 
 ## Further reading
 
+- [Container packaging and safe Compose validation](docs/containers.md)
 - [Local setup, API, live scanning, and tests](docs/local-development.md)
 - [Multi-profile configuration and scheduling](docs/scheduling.md)
 - [Credit accounting and operational limits](docs/credit-budget.md)
