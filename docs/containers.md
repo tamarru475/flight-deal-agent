@@ -37,6 +37,8 @@ The runtime image contains published artifacts and the ASP.NET Core runtime, run
 
 Both long-running services restart unless explicitly stopped. Docker JSON logs are limited to three 10 MB files per container. The probe uses the same logging limit. `/health` is liveness only; database-backed reads below also verify application database connectivity.
 
+The app is limited to 0.5 CPU and 512 MiB RAM; PostgreSQL to 1 CPU and 768 MiB RAM. These are initial ceilings for the four-core, 7.6 GiB home server, not reservations or measured requirements. Monitor usage after deployment. They do not constrain Docker builds or prevent other workloads, such as Ollama, from exhausting host memory.
+
 ## Offline smoke test
 
 ```sh

@@ -9,6 +9,8 @@ x-logging: &logging
 services:
   db:
     image: postgres:17.11-bookworm
+    cpus: "1.00"
+    mem_limit: 768m
     env_file: ${FLIGHT_DEALS_DB_ENV_FILE:-./deploy/postgres.env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -22,6 +24,8 @@ services:
 
   app:
     image: flight-deal-agent:local
+    cpus: "0.50"
+    mem_limit: 512m
     build:
       context: .
       target: runtime
