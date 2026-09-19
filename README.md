@@ -24,7 +24,7 @@ Tests use synthetic provider responses. Set `TEST_POSTGRES` to include the Postg
 
 ## Current scope
 
-Multiple exact-date profiles have individual intervals and priorities. A quota-aware scheduler shares the manual scan path, with at most two search requests per scan. Automatic scheduling and live searches are disabled by default. There is no UI, notification delivery, historical scoring, or LLM dependency yet. Tokyo Premium Economy thresholds remain unset, so its assessment is `InsufficientBaseline`.
+Multiple exact-date profiles have individual intervals and priorities. A quota-aware scheduler shares the manual scan path, with at most two search requests per scan. Automatic scheduling and live searches are disabled by default. There is no UI, notification delivery, historical scoring, or LLM dependency yet. Tokyo Premium Economy uses user-approved manual seed thresholds; these are assumptions, not learned market history.
 
 Mixed cabins are descriptive, with no automatic penalty; main-long-haul premium applicability is not evaluated yet. Prices are unverified search quotes, baggage can be incomplete, and missing separate-ticket data does not prove connection protection. The API is local-only. Deployment and backups are later work.
 

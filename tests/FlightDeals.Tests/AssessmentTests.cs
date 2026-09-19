@@ -1,10 +1,43 @@
 using FlightDeals;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace FlightDeals.Tests;
 
 public class AssessmentTests
 {
+    [Theory]
+    [InlineData(4999, Classification.Deal)]
+    [InlineData(5000, Classification.Cheap)]
+    [InlineData(5999, Classification.Cheap)]
+    [InlineData(6000, Classification.Normal)]
+    [InlineData(7133, Classification.Normal)]
+    [InlineData(8999, Classification.Normal)]
+    [InlineData(9000, Classification.Expensive)]
+    public void ConfiguredTokyoSeedsClassifyBothCabinCompositions(decimal partyTotal, Classification expected)
+    {
+        var configuration = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json").Build();
+        var settings = configuration.GetSection("FlightDeals").Get<AppSettings>()!;
+        settings.Validate();
+        foreach (var returnCabin in new[] { Cabin.PremiumEconomy, Cabin.Economy })
+        {
+            var assessment = AssessmentEvaluator.Evaluate(settings.DefaultProfile, TestData.Journey(true),
+                TestData.Journey(false, returnCabin), partyTotal, settings.ManualBaselines, TestData.Now);
+            Assert.Equal(expected, assessment.Classification);
+            Assert.Equal(AssessmentSource.ManualBaseline, assessment.Source);
+            Assert.Contains("User-approved cold-start thresholds", assessment.BaselineAssumption);
+            Assert.Contains("not been scored", string.Join(' ', assessment.Limitations));
+            if (returnCabin == Cabin.Economy)
+            {
+                Assert.Equal("akl-tokyo-premium-economy-mixed", assessment.BaselineId);
+                Assert.Contains("does not establish", assessment.BaselineAssumption);
+            }
+        }
+        Assert.False(settings.LiveSearchEnabled);
+        Assert.False(settings.SchedulerEnabled);
+    }
+
     [Theory]
     [InlineData(3999, Classification.Deal)]
     [InlineData(4000, Classification.Cheap)]
