@@ -20,6 +20,13 @@ public static class ServiceRegistration
         AddSerpApi(services);
         services.AddSingleton<ScanService>();
         services.AddHostedService<MonitoringWorker>();
+        var notifications = configuration.GetSection("Notifications").Get<NotificationSettings>() ?? new();
+        notifications.Validate();
+        services.AddSingleton(notifications);
+        services.AddSingleton<NotificationStore>();
+        services.AddSingleton<INotificationSender, SmtpNotificationSender>();
+        services.AddSingleton<NotificationProcessor>();
+        services.AddHostedService<NotificationWorker>();
         return services;
     }
 

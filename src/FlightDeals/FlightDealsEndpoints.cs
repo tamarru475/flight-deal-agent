@@ -6,6 +6,7 @@ public static class FlightDealsEndpoints
     {
         var settings = app.Services.GetRequiredService<AppSettings>();
         app.MapGet("/health", () => Results.Ok(new { status = "alive" }));
+        app.MapGet("/notifications", (NotificationStore store, CancellationToken ct) => store.Recent(ct));
         app.MapGet("/profile", () => settings.DefaultProfile);
         app.MapGet("/profiles", () => settings.MonitoredProfiles);
         app.MapPost("/profiles/{profileId}/scans", async (string profileId, HttpRequest request, ScanService scans, CancellationToken ct) =>

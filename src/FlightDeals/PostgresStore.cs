@@ -23,6 +23,12 @@ public sealed class PostgresStore(NpgsqlDataSource database) : IScanStore
                 observed_at timestamptz NOT NULL, payload jsonb NOT NULL);
             CREATE INDEX IF NOT EXISTS scan_runs_started ON scan_runs(started_at DESC);
             CREATE INDEX IF NOT EXISTS observations_observed ON observations(observed_at DESC);
+            CREATE TABLE IF NOT EXISTS notification_profile_state (
+                scope text PRIMARY KEY, payload jsonb NOT NULL);
+            CREATE TABLE IF NOT EXISTS notifications (
+                observation_id uuid PRIMARY KEY REFERENCES observations(id),
+                scope text NOT NULL REFERENCES notification_profile_state(scope), payload jsonb NOT NULL);
+            CREATE INDEX IF NOT EXISTS notifications_scope ON notifications(scope);
             """);
         await command.ExecuteNonQueryAsync(ct);
     }
