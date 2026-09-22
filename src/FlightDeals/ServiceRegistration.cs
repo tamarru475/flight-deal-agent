@@ -27,6 +27,14 @@ public static class ServiceRegistration
         services.AddSingleton<INotificationSender, SmtpNotificationSender>();
         services.AddSingleton<NotificationProcessor>();
         services.AddHostedService<NotificationWorker>();
+        var digests = configuration.GetSection("WeeklyDigest").Get<WeeklyDigestSettings>() ?? new();
+        digests.Validate();
+        if (digests.Enabled) notifications.ValidateSmtp();
+        services.AddSingleton(digests);
+        services.AddSingleton<WeeklyDigestStore>();
+        services.AddSingleton<IWeeklyDigestSender, SmtpNotificationSender>();
+        services.AddSingleton<WeeklyDigestProcessor>();
+        services.AddHostedService<WeeklyDigestWorker>();
         return services;
     }
 

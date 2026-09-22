@@ -20,6 +20,11 @@ public sealed class NotificationSettings
         if (MaterialImprovementFraction is <= 0 or >= 1)
             throw new InvalidOperationException("Notification improvement fraction must be between zero and one.");
         if (!Enabled) return;
+        ValidateSmtp();
+    }
+
+    public void ValidateSmtp()
+    {
         if (string.IsNullOrWhiteSpace(SmtpHost) || SmtpPort is < 1 or > 65535 ||
             string.IsNullOrWhiteSpace(SmtpUsername) || string.IsNullOrWhiteSpace(SmtpPassword) ||
             !MailAddress.TryCreate(Sender, out _) || !MailAddress.TryCreate(Recipient, out _) ||
@@ -72,13 +77,25 @@ public static class NotificationEmailBuilder
     }
 }
 
-public sealed class SmtpNotificationSender(NotificationSettings settings) : INotificationSender
+public sealed class SmtpNotificationSender(NotificationSettings settings, WeeklyDigestSettings? digests = null)
+    : INotificationSender, IWeeklyDigestSender
 {
     public async Task<DeliveryStatus> Send(NotificationRecord notification, NotificationEmail email, CancellationToken ct)
     {
         if (!settings.Enabled) return DeliveryStatus.Failed;
+        return await SendEmail(notification.MessageId, email, ct);
+    }
+
+    public Task<DeliveryStatus> SendDigest(DigestDelivery delivery, CancellationToken ct)
+    {
+        if (digests?.Enabled != true || delivery.Email is null) return Task.FromResult(DeliveryStatus.Failed);
+        return SendEmail(delivery.MessageId, delivery.Email, ct);
+    }
+
+    private async Task<DeliveryStatus> SendEmail(string messageId, NotificationEmail email, CancellationToken ct)
+    {
         using var message = new MailMessage(settings.Sender, settings.Recipient, email.Subject, email.Body);
-        message.Headers.Add("Message-ID", notification.MessageId);
+        message.Headers.Add("Message-ID", messageId);
         using var client = new SmtpClient(settings.SmtpHost, settings.SmtpPort)
         {
             EnableSsl = true, // Require STARTTLS; never fall back to plaintext SMTP.

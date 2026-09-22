@@ -24,7 +24,7 @@ Tests use synthetic provider responses. Set `TEST_POSTGRES` to include the Postg
 
 ## Current scope
 
-Multiple exact-date profiles have individual intervals and priorities. A quota-aware scheduler shares the manual scan path, with at most two search requests per scan. Email notifications have durable duplicate suppression and no automatic delivery retries. Scheduling, live searches, and notifications are disabled by default. There is no UI, historical scoring, or LLM dependency. Tokyo Premium Economy uses user-approved manual seed thresholds; these are assumptions, not learned market history.
+Multiple exact-date profiles have individual intervals and priorities. A quota-aware scheduler shares the manual scan path, with at most two search requests per scan. Immediate email alerts and a separate Monday weekly summary have durable delivery state and no automatic delivery retries. Scheduling, live searches, alerts, and weekly summaries are disabled by default. There is no UI, historical scoring, or LLM dependency. Tokyo Premium Economy uses user-approved manual seed thresholds; these are assumptions, not learned market history.
 
 Mixed cabins are descriptive, with no automatic penalty; main-long-haul premium applicability is not evaluated yet. Prices are unverified search quotes, baggage can be incomplete, and missing separate-ticket data does not prove connection protection. The API is local-only. Deployment and backups are later work.
 
@@ -36,3 +36,4 @@ Mixed cabins are descriptive, with no automatic penalty; main-long-haul premium 
 - [Credit accounting and operational limits](docs/credit-budget.md)
 - [Persistence, observations, and manual assessment](docs/design.md)
 - [Email policy, delivery state, and private SMTP setup](docs/notifications.md)
+- [Deterministic weekly digest and scheduling](docs/weekly-digest.md)

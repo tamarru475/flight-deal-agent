@@ -29,6 +29,9 @@ public sealed class PostgresStore(NpgsqlDataSource database) : IScanStore
                 observation_id uuid PRIMARY KEY REFERENCES observations(id),
                 scope text NOT NULL REFERENCES notification_profile_state(scope), payload jsonb NOT NULL);
             CREATE INDEX IF NOT EXISTS notifications_scope ON notifications(scope);
+            CREATE TABLE IF NOT EXISTS weekly_digests (
+                period_start timestamptz PRIMARY KEY, period_end timestamptz NOT NULL UNIQUE,
+                payload jsonb NOT NULL, CHECK (period_end > period_start));
             """);
         await command.ExecuteNonQueryAsync(ct);
     }
