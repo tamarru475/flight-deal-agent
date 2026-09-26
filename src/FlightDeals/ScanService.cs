@@ -76,7 +76,10 @@ public sealed class ScanService(IFlightProvider provider, IScanStore store, AppS
 
             run = StartAttempt(run, "ReturnOptions");
             await session.SaveRun(run, ct);
-            var inbound = Select(await provider.Search(profile, outbound.DepartureToken, ct), profile, false);
+            var returnOptions = await provider.Search(profile, outbound.DepartureToken, ct);
+            var suitableStays = returnOptions.Where(option => DestinationStay.MeetsRequirement(
+                profile, outbound.Journey, option.Journey));
+            var inbound = Select(suitableStays, profile, false);
             run = EndAttempt(run);
             if (inbound is null) return await Finish(RunStatus.NoSuitableReturn,
                 "No priced return meets the basic rules for the selected outbound; no additional search was made.");

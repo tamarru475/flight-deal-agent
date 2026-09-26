@@ -41,6 +41,8 @@ public sealed class AppSettings
             || !Enum.IsDefined(profile.RequestedCabin) || profile.MaxStops is < 0 or > 2 || profile.MaxDurationMinutes <= 0)
             throw new ScanException("Invalid search profile.");
         var days = profile.ReturnDate.DayNumber - profile.OutboundDate.DayNumber;
+        if (profile.RequiredDestinationNights is <= 0)
+            throw new ScanException("Required destination nights must be positive when configured.");
         if (profile.MinTripDays < 1 || profile.MaxTripDays < profile.MinTripDays || days < profile.MinTripDays || days > profile.MaxTripDays)
             throw new ScanException("Travel dates must satisfy the profile's trip-duration bounds.");
     }

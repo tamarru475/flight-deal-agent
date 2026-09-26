@@ -19,7 +19,7 @@ public sealed record DigestSearchDefinitionKey(
     string Id, string Origin, DigestSequenceKey<string> Destinations,
     DateOnly OutboundDate, DateOnly ReturnDate, int MinTripDays, int MaxTripDays,
     int Adults, string Currency, Cabin RequestedCabin, int MaxStops, int MaxDurationMinutes,
-    bool ExcludeKnownSeparateTickets, bool ExcludeAirportChanges)
+    bool ExcludeKnownSeparateTickets, bool ExcludeAirportChanges, int? RequiredDestinationNights)
 {
     public static DigestSearchDefinitionKey From(SearchProfile profile) => new(
         Id: profile.Id, Origin: profile.Origin, Destinations: new(profile.Destinations),
@@ -28,7 +28,8 @@ public sealed record DigestSearchDefinitionKey(
         Adults: profile.Adults, Currency: profile.Currency, RequestedCabin: profile.RequestedCabin,
         MaxStops: profile.MaxStops, MaxDurationMinutes: profile.MaxDurationMinutes,
         ExcludeKnownSeparateTickets: profile.ExcludeKnownSeparateTickets,
-        ExcludeAirportChanges: profile.ExcludeAirportChanges);
+        ExcludeAirportChanges: profile.ExcludeAirportChanges,
+        RequiredDestinationNights: profile.RequiredDestinationNights);
 }
 
 public sealed record DigestSegmentKey(string DepartureAirport, string ArrivalAirport, string? Airline, Cabin Cabin)

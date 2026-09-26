@@ -9,6 +9,46 @@ namespace FlightDeals.Tests;
 public class ScheduledPostgresTests
 {
     [PostgresFact]
+    public async Task BaselineRevisionOnlyAffectsNewObservations()
+    {
+        var settings = HistoricalSamplingTests.Settings();
+        var originalBaseline = settings.ManualBaselines[0] with
+        {
+            Version = 1, Thresholds = new(2000, 2500, 4000), Assumption = "Original manual seed"
+        };
+        var oldSettings = new AppSettings { LiveSearchEnabled = true, Profile = settings.Profiles[1].Search,
+            ManualBaselines = [originalBaseline] };
+        var revisedSettings = new AppSettings { LiveSearchEnabled = true, Profile = oldSettings.Profile,
+            ManualBaselines = settings.ManualBaselines };
+        var schema = "test_" + Guid.NewGuid().ToString("N");
+        var cs = Environment.GetEnvironmentVariable("TEST_POSTGRES")!;
+        await using var admin = NpgsqlDataSource.Create(cs);
+        await using (var create = admin.CreateCommand($"CREATE SCHEMA {schema}")) await create.ExecuteNonQueryAsync();
+        try
+        {
+            await using var database = NpgsqlDataSource.Create(new NpgsqlConnectionStringBuilder(cs) { SearchPath = schema }.ConnectionString);
+            var store = new PostgresStore(database);
+            await store.Initialize(default);
+            var provider = new ProfileProvider { Price = 5000 };
+            var original = await new ScanService(provider, store, oldSettings, new FixedClock()).Run(default);
+            await store.Initialize(default); // Deployment initialization must not rewrite stored assessments.
+            var revised = await new ScanService(provider, store, revisedSettings, new FixedClock()).Run(default);
+            var originalObservation = await store.Observation(original.ObservationId!.Value, default);
+            var revisedObservation = await store.Observation(revised.ObservationId!.Value, default);
+            Assert.Equal(1, originalObservation!.Assessment.BaselineVersion);
+            Assert.Equal(Classification.Normal, originalObservation.Assessment.Classification);
+            Assert.Equal(new Thresholds(2000, 2500, 4000), originalObservation.Assessment.AppliedThresholds);
+            Assert.Equal(2, revisedObservation!.Assessment.BaselineVersion);
+            Assert.Equal(Classification.Cheap, revisedObservation.Assessment.Classification);
+        }
+        finally
+        {
+            await using var drop = admin.CreateCommand($"DROP SCHEMA {schema} CASCADE");
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    [PostgresFact]
     public async Task ConfiguredEuropeScanUsesBaselineAndPersistsPacingAcrossRestart()
     {
         var configuration = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
@@ -86,6 +126,7 @@ public class ScheduledPostgresTests
     private sealed class ProfileProvider : IFlightProvider
     {
         public int Calls;
+        public decimal Price = 3500;
         public Task<AccountQuota> GetAccount(CancellationToken ct) => Task.FromResult(TestData.Account);
         public Task<FlightOption[]> Search(SearchProfile profile, string? departureToken, CancellationToken ct)
         {
@@ -99,7 +140,7 @@ public class ScheduledPostgresTests
                 DurationMinutes: 660, Airline: "Synthetic Air", FlightNumber: "TEST 1",
                 Cabin: profile.RequestedCabin, ReportedCabin: profile.RequestedCabin.ToString(), Overnight: null);
             var journey = new Journey(660, [segment], [], null, []);
-            return Task.FromResult<FlightOption[]>([new(3500, journey, outbound ? "synthetic-selection" : null)]);
+            return Task.FromResult<FlightOption[]>([new(Price, journey, outbound ? "synthetic-selection" : null)]);
         }
     }
 }

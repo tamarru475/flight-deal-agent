@@ -30,7 +30,7 @@ The application hosts one simple background worker. Both `LiveSearchEnabled` and
 }
 ```
 
-The shipped list contains Tokyo Premium Economy (priority 100) and Paris Economy (priority 90), both at 56-hour intervals: approximately three scans per week. The Paris profile matches the existing Europe Economy manual baseline. A classification still depends on the returned fare and actual cabin composition.
+The shipped list retains Tokyo Premium Economy (priority 100) and Paris Economy (priority 90), both at 56-hour intervals: approximately three scans per week. It also includes 15 active Economy historical-sampling profiles at weekly/fortnightly intervals and four inactive October profiles; see [the sampling configuration and quota projection](historical-sampling.md). The Paris profile matches the existing Europe Economy manual baseline. A classification still depends on the returned fare and actual cabin composition.
 
 IDs must be unique and stable. Intervals must be finite and between 1 and 8760 hours; priorities must be nonnegative. Higher numbers take precedence. `Active` controls automatic eligibility; an explicit manual trigger can still scan an inactive profile. Profiles with departure dates today or in the past are skipped automatically. Restart after changing configuration.
 

@@ -71,6 +71,9 @@ public sealed record SearchProfile
     public int MaxDurationMinutes { get; init; } = 1800;
     public bool ExcludeKnownSeparateTickets { get; init; } = true;
     public bool ExcludeAirportChanges { get; init; } = true;
+    // Omit unset values so existing serialized search identities and notification scopes stay stable.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? RequiredDestinationNights { get; init; }
 }
 
 public sealed record Assessment(Classification Classification, AssessmentSource Source,

@@ -33,6 +33,7 @@ Mixed cabins are descriptive, with no automatic penalty; main-long-haul premium 
 - [Container packaging and safe Compose validation](docs/containers.md)
 - [Local setup, API, live scanning, and tests](docs/local-development.md)
 - [Multi-profile configuration and scheduling](docs/scheduling.md)
+- [Historical sampling routes, local-night validation, and quota projection](docs/historical-sampling.md)
 - [Credit accounting and operational limits](docs/credit-budget.md)
 - [Persistence, observations, and manual assessment](docs/design.md)
 - [Email policy, delivery state, and private SMTP setup](docs/notifications.md)
