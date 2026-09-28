@@ -65,18 +65,26 @@ public sealed class ScanService(IFlightProvider provider, IScanStore store, AppS
     private async Task<ScanRun> ExecuteScan(ScanRun run, IScanSession session, CancellationToken ct)
     {
         var profile = run.Profile;
+        var stage = ScanFailureStage.Persistence;
         try
         {
             run = StartAttempt(run, "Outbound");
             await session.SaveRun(run, ct); // committed BEFORE the external call
-            var outbound = Select(await provider.Search(profile, null, ct), profile, true);
+            stage = ScanFailureStage.OutboundSearch;
+            var outboundOptions = await provider.Search(profile, null, ct);
+            stage = ScanFailureStage.ResponseProcessing;
+            var outbound = Select(outboundOptions, profile, true);
             run = EndAttempt(run);
+            stage = ScanFailureStage.Persistence;
             await session.SaveRun(run, ct);
             if (outbound is null) return await Finish(RunStatus.NoSuitableOutbound, "No priced outbound meets the basic rules.");
 
+            stage = ScanFailureStage.Persistence;
             run = StartAttempt(run, "ReturnOptions");
             await session.SaveRun(run, ct);
+            stage = ScanFailureStage.ReturnSearch;
             var returnOptions = await provider.Search(profile, outbound.DepartureToken, ct);
+            stage = ScanFailureStage.ResponseProcessing;
             var suitableStays = returnOptions.Where(option => DestinationStay.MeetsRequirement(
                 profile, outbound.Journey, option.Journey));
             var inbound = Select(suitableStays, profile, false);
@@ -87,15 +95,24 @@ public sealed class ScanService(IFlightProvider provider, IScanStore store, AppS
             var observation = CreateObservation(run, outbound, inbound, now);
             run = run with { Status = RunStatus.Completed, ObservationId = observation.Id, FinishedAt = now,
                 Message = "Paired quote collected; baggage and connection protection remain unverified." };
+            stage = ScanFailureStage.Persistence;
             await session.Complete(run, observation, ct);
             return run;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
             // Persist failure using an independent token even if the caller disconnected.
             // Never persist raw HTTP exceptions or provider response bodies.
             run = run with { Status = RunStatus.Failed, FinishedAt = clock.GetUtcNow(),
-                Message = "Scan failed; reserved credits remain accounted. Inspect attempt stages; no automatic retry." };
+                Message = "Scan failed; reserved credits remain accounted. Inspect attempt stages; no automatic retry.",
+                FailureCategory = exception switch
+                {
+                    ScanException { Category: { } category } => category,
+                    TimeoutException => ScanFailureCategory.Timeout,
+                    OperationCanceledException when !ct.IsCancellationRequested => ScanFailureCategory.Timeout,
+                    _ => ScanFailureCategory.Unexpected
+                },
+                FailureStage = stage };
             using var cleanup = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             await session.SaveRun(run, cleanup.Token);
             return run;
@@ -103,6 +120,7 @@ public sealed class ScanService(IFlightProvider provider, IScanStore store, AppS
 
         async Task<ScanRun> Finish(RunStatus status, string message)
         {
+            stage = ScanFailureStage.Persistence;
             run = run with { Status = status, Message = message, FinishedAt = clock.GetUtcNow() };
             await session.SaveRun(run, ct);
             return run;

@@ -17,3 +17,11 @@ Assessments snapshot baseline ID/version, thresholds, assumption, reasons, limit
 `AllSegmentsInRequestedCabin` and explicitly configured `MixedCabin` baselines are supported. Mixed itineraries receive no automatic penalty. `MainLongHaulSegmentsInRequestedCabin` is representable but deliberately not evaluated yet; it produces insufficient baseline unless another supported baseline applies. A mixed-cabin price classification does not certify that the main long-haul segment is premium. Segment facts remain the source for that future evaluation.
 
 Notification requirement for a later milestone: a mixed-cabin itinerary must not trigger a strong Premium Economy deal notification solely from its price classification. Require `MainLongHaulSegmentsInRequestedCabin` or equivalent segment-quality logic first. The current mixed-cabin baseline applies the same thresholds without a penalty, but does not establish that premium seating is on the important long-haul segments. No notifications are implemented or enabled.
+
+### Safe scan failure diagnostics
+
+Failed reserved runs optionally persist `failureCategory` and `failureStage` in their existing JSON payload. Older runs omit these fields and remain readable; no schema migration or historical backfill is needed. Categories are `ProviderHttpError` (HTTP/transport failure), `ProviderResponseInvalid` (provider error, incomplete search or mismatched context), `ProviderParseError` (malformed JSON or parsing failure), `Timeout`, and `Unexpected`. Caller-requested cancellation is not labelled a timeout.
+
+Stages distinguish `OutboundSearch`, `ReturnSearch`, `ResponseProcessing` (application selection/assessment), and `Persistence`. Provider parsing remains part of its search stage, with the category identifying parsing errors. Attempt markers retain their existing meaning. Only enums and the existing fixed safe message are saved, never exception text, inner exceptions, request URIs or response bodies.
+
+Account/quota checks still happen before run reservation. Failures there do not create a scan run or change its scheduling/accounting state. This diagnostic change deliberately does not add pre-reservation run records, retries or refunds; reserved scans retain the conservative two credits.

@@ -26,7 +26,8 @@ public class NotificationPostgresTests
             var settings = new NotificationSettings { Enabled = true };
             NotificationProcessor Processor() => new(store, settings, TestData.Settings, sender, TimeProvider.System);
 
-            await Insert(db, NotificationTests.Fare());
+            // Make the historical fixture unambiguously older than both host and Docker clocks.
+            await Insert(db, NotificationTests.Fare() with { ObservedAt = TestData.Now });
             await Processor().Process(default); // First enable skips the existing observation.
             Assert.Empty(await store.Recent(default));
             Assert.Equal(0, sender.Calls);

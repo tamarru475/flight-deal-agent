@@ -46,15 +46,22 @@ public sealed class SerpApiProvider(HttpClient client, string key) : IFlightProv
         };
         if (departureToken is not null) query["departure_token"] = departureToken;
         using var doc = await Get("search.json", query, ct);
-        var root = doc.RootElement;
-        if (!root.TryGetProperty("search_metadata", out var meta) || Text(meta, "status") is not ("Success" or "Cached"))
-            throw new ScanException("Provider did not return a completed search; no retry was made.");
-        // Confirm the response belongs to our passenger/currency/cabin context before accepting prices.
-        if (!root.TryGetProperty("search_parameters", out var echoed)
-            || Number(echoed, "adults") != profile.Adults || Text(echoed, "currency") != profile.Currency
-            || Number(echoed, "travel_class") != (int)profile.RequestedCabin)
-            throw new ScanException("Provider search context is missing or mismatched.");
-        return ParseOptions(root);
+        try
+        {
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("search_metadata", out var meta) || Text(meta, "status") is not ("Success" or "Cached"))
+                throw new ScanException("Provider did not return a completed search; no retry was made.", ScanFailureCategory.ProviderResponseInvalid);
+            // Confirm the response belongs to our passenger/currency/cabin context before accepting prices.
+            if (!root.TryGetProperty("search_parameters", out var echoed)
+                || Number(echoed, "adults") != profile.Adults || Text(echoed, "currency") != profile.Currency
+                || Number(echoed, "travel_class") != (int)profile.RequestedCabin)
+                throw new ScanException("Provider search context is missing or mismatched.", ScanFailureCategory.ProviderResponseInvalid);
+            return ParseOptions(root);
+        }
+        catch (Exception e) when (e is JsonException or InvalidOperationException or FormatException or OverflowException)
+        {
+            throw new ScanException("Provider response could not be parsed.", ScanFailureCategory.ProviderParseError);
+        }
     }
 
     private async Task<JsonDocument> Get(string endpoint, Dictionary<string, string> query, CancellationToken ct)
@@ -66,19 +73,26 @@ public sealed class SerpApiProvider(HttpClient client, string key) : IFlightProv
         try
         {
             using var response = await client.GetAsync(uri, ct);
-            if (!response.IsSuccessStatusCode) throw new ScanException("SerpApi returned an unsuccessful HTTP status; no retry was made.");
+            if (!response.IsSuccessStatusCode) throw new ScanException("SerpApi returned an unsuccessful HTTP status; no retry was made.", ScanFailureCategory.ProviderHttpError);
             var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
             if (doc.RootElement.TryGetProperty("error", out _))
             {
                 doc.Dispose();
-                throw new ScanException("SerpApi reported an error; no retry was made.");
+                throw new ScanException("SerpApi reported an error; no retry was made.", ScanFailureCategory.ProviderResponseInvalid);
             }
             return doc;
         }
-        catch (Exception e) when (e is HttpRequestException or OperationCanceledException or JsonException)
+        catch (Exception e) when (e is HttpRequestException or OperationCanceledException or JsonException or InvalidOperationException)
         {
             // Do not propagate URI-bearing exceptions or raw response bodies (which can contain the key).
-            throw new ScanException("Provider request failed or timed out; any search remains potentially charged.");
+            var category = e switch
+            {
+                HttpRequestException => ScanFailureCategory.ProviderHttpError,
+                OperationCanceledException when !ct.IsCancellationRequested => ScanFailureCategory.Timeout,
+                JsonException or InvalidOperationException => ScanFailureCategory.ProviderParseError,
+                _ => ScanFailureCategory.Unexpected
+            };
+            throw new ScanException("Provider request failed; any search remains potentially charged.", category);
         }
     }
 

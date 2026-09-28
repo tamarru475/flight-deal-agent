@@ -46,6 +46,13 @@ public class PostgresTests
             Assert.Equal(RunStatus.Completed, (await restarted.Run(run.Id, default))!.Status);
             Assert.Equal(2, (await restarted.Quota(default))!.AccountedCredits);
 
+            var failed = await new ScanService(new FakeProvider { FailReturn = true }, restarted,
+                TestData.Settings, new FixedClock()).Run(default);
+            var persistedFailure = await new PostgresStore(db).Run(failed.Id, default);
+            Assert.Equal(ScanFailureCategory.Unexpected, persistedFailure!.FailureCategory);
+            Assert.Equal(ScanFailureStage.ReturnSearch, persistedFailure.FailureStage);
+            Assert.Equal(4, (await restarted.Quota(default))!.AccountedCredits);
+
             // Simulate a process interruption after reservation, before dispatch.
             Guid interruptedId;
             await using (var session = await restarted.OpenSession(default))

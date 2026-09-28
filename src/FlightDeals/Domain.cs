@@ -8,6 +8,9 @@ public enum CabinApplicability { AllSegmentsInRequestedCabin, MainLongHaulSegmen
 public enum CabinComposition { Unknown, AllSegmentsInRequestedCabin, MixedCabin, OtherCabin }
 public enum AssessmentSource { None, ManualBaseline, HistoricalBaseline }
 public enum Classification { InsufficientBaseline, Deal, Cheap, Normal, Expensive }
+public enum ScanFailureCategory { ProviderHttpError, ProviderResponseInvalid, ProviderParseError, Timeout, Unexpected }
+public enum ScanFailureStage { OutboundSearch, ReturnSearch, ResponseProcessing, Persistence }
+
 public enum RunStatus { Running, Completed, NoSuitableOutbound, NoSuitableReturn, Failed }
 
 public static class JsonDefaults
@@ -91,6 +94,11 @@ public sealed record Observation(Guid Id, Guid RunId, DateTimeOffset ObservedAt,
 public sealed record SearchAttempt(int Number, string Stage, DateTimeOffset StartedAt, string Status);
 public sealed record ScanRun(Guid Id, DateTimeOffset StartedAt, SearchProfile Profile,
     RunStatus Status, int ReservedCredits, SearchAttempt[] Attempts,
-    Guid? ObservationId = null, string? Message = null, DateTimeOffset? FinishedAt = null);
+    Guid? ObservationId = null, string? Message = null, DateTimeOffset? FinishedAt = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ScanFailureCategory? FailureCategory = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ScanFailureStage? FailureStage = null);
 
-public sealed class ScanException(string message) : Exception(message);
+public sealed class ScanException(string message, ScanFailureCategory? category = null) : Exception(message)
+{
+    public ScanFailureCategory? Category { get; } = category;
+}
