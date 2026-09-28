@@ -40,13 +40,13 @@ public class WeeklyDigestTests
     public void QuietWeekStillIncludesEveryActiveProfileAndFooter()
     {
         var email = WeeklyDigestBuilder.Build(Period, [new() { Search = TestData.Profile }], Data(), null, .05m, 200, 50);
-        Assert.Contains("Weekly flight summary", email.Subject);
-        Assert.Contains("tokyo-premium", email.Body);
-        Assert.Contains("No observations", email.Body);
-        Assert.Contains("Observation count: 0", email.Body);
-        Assert.Contains("Successful: 0", email.Body);
-        Assert.Contains("Provider usage: unavailable", email.Body);
-        Assert.Contains("Immediate alerts accepted by SMTP: 0", email.Body);
+        Assert.Contains("Weekly flight watch", email.Subject);
+        Assert.Contains("Tokyo", email.Body);
+        Assert.Contains("No fares recorded this week", email.Body);
+        Assert.Contains("Tokyo — Premium Economy", email.Body);
+        Assert.Contains("0 successful", email.Body);
+        Assert.Contains("Provider usage unavailable", email.Body);
+        Assert.Contains("No deal alerts sent this week.", email.Body);
     }
 
     [Fact]
@@ -54,8 +54,8 @@ public class WeeklyDigestTests
     {
         var data = Data(Fare(1, 3500), Fare(2, 3400), Fare(3, 3200));
         var email = WeeklyDigestBuilder.Build(Period, [new() { Search = TestData.Profile }], data, null, .05m, 200, 50);
-        foreach (var text in new[] { "3 Normal observations", "NZD 6400.00", "NZD 3200.00", "ended lower",
-                     "PremiumEconomy", "2027-05-01", "2027-05-15", "Connection protection", "not a market trend" })
+        foreach (var text in new[] { "3 Normal", "NZ$6,400", "NZ$3,200", "ended lower",
+                     "Premium Economy", "1–15 May 2027", "connection protection", "not a market trend" })
             Assert.Contains(text, email.Body);
     }
 
@@ -86,10 +86,10 @@ public class WeeklyDigestTests
         var outside = Fare(1, 1, Classification.Deal) with { ObservedAt = Period.End };
         var email = WeeklyDigestBuilder.Build(Period, [new() { Search = TestData.Profile }],
             Data(Fare(1, 3500), changed, outside), null, .05m, 200, 50);
-        Assert.Contains("Search definition", email.Body);
+        Assert.Contains("1 adults", email.Body);
         Assert.Contains("Deal observed", email.Body);
-        Assert.DoesNotContain("NZD 1.00", email.Body);
-        Assert.Contains("1 Normal observations", email.Body);
+        Assert.DoesNotContain("NZ$1 pp", email.Body);
+        Assert.Contains("pp · Normal", email.Body);
     }
 
     [Fact]
@@ -101,9 +101,9 @@ public class WeeklyDigestTests
         var data = Data() with { Runs = [run], Budget = new(new(2026, 10, 11), 30, 28) };
         var account = TestData.Account with { Usage = 32, Remaining = 218, RenewalDate = new(2026, 10, 11) };
         var email = WeeklyDigestBuilder.Build(Period, [], data, account, .05m, 200, 50);
-        Assert.Contains("Failed: 1", email.Body);
-        Assert.Contains("Reserved credits: 2", email.Body);
-        Assert.Contains("Potentially charged requests: 1", email.Body);
+        Assert.Contains("1 failed", email.Body);
+        Assert.Contains("2 credits reserved", email.Body);
+        Assert.Contains("1 requests", email.Body);
         Assert.Contains("Operating headroom: 168", email.Body);
     }
 
@@ -119,7 +119,7 @@ public class WeeklyDigestTests
         var email = WeeklyDigestBuilder.Build(Period, [new() { Search = TestData.Profile }],
             Data(first, second, last), null, .05m, 200, 50);
         Assert.Contains("Cheap observed", email.Body);
-        Assert.Contains("Too little comparable data to assess movement", email.Body);
+        Assert.Contains("Not enough comparable history yet to assess price movement on some routes.", email.Body);
         Assert.Contains("Checked baggage for a fee", email.Body);
     }
 
@@ -132,9 +132,9 @@ public class WeeklyDigestTests
         var alert = new NotificationRecord(Guid.NewGuid(), "scope", DeliveryStatus.Sent, "test", "<test@local>",
             Period.Start.AddMinutes(-1), SentAt: Period.Start);
         var email = WeeklyDigestBuilder.Build(Period, [], Data() with { Runs = [run], Notifications = [alert] }, null, .05m, 200, 50);
-        Assert.Contains("Reserved credits: 0", email.Body);
-        Assert.Contains("Potentially charged requests: 1", email.Body);
-        Assert.Contains("Immediate alerts accepted by SMTP: 1", email.Body);
+        Assert.Contains("0 credits reserved", email.Body);
+        Assert.Contains("1 requests", email.Body);
+        Assert.Contains("1 deal alert accepted for delivery", email.Body);
     }
 
     [Fact]

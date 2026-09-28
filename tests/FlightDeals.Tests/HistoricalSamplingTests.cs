@@ -103,8 +103,10 @@ public class HistoricalSamplingTests
         }).ToArray();
         var email = WeeklyDigestBuilder.Build(WeeklyDigestTests.Period, settings.Profiles,
             new(observations, [], [], null), null, .05m, 200, 50);
-        foreach (var observation in observations) Assert.Contains(observation.Profile.Id, email.Body);
-        Assert.Contains("InsufficientBaseline", email.Body);
+        foreach (var destination in new[] { "Brisbane", "Sydney", "Fiji", "Rarotonga", "Perth", "Cairns", "Tahiti", "Bangkok", "Ho Chi Minh City", "Manila", "Tokyo", "Santiago", "Lima", "Rio", "Cape Town" })
+            Assert.Contains(destination + " — Economy", email.Body);
+        Assert.Contains("Baseline still learning", email.Body);
+        Assert.DoesNotContain("InsufficientBaseline", email.Body);
         Assert.DoesNotContain("2027-10", email.Body);
     }
 

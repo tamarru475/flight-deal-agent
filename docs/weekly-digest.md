@@ -21,24 +21,28 @@ After downtime, only the latest report whose Monday 09:00 deadline has passed is
 
 ## Contents
 
-Each currently active profile appears, including an explicit no-observations message when applicable. Observations are selected by observation timestamp in the calendar week. Different persisted search definitions under the same profile ID receive separate sections; the current definition is shown even if it has no observations.
+Each currently active profile appears, with empty routes collected under “No fares recorded this week”. Observations are selected by observation timestamp in the calendar week. Different persisted search definitions under the same profile ID receive separate sections; the current definition is shown even if it has no observations.
 
-Sections include route, travel dates, requested cabin, adults/currency, observation count, lowest and latest total/per-adult quotes, classification counts, actual segment cabin descriptions, baseline sources/versions/assumptions, and limitations. Fare notes remain labelled unverified. A mixed-cabin premium price classification is not a claim that premium cabin occupies the important long-haul segments.
+Established routes with classified observations appear first, then baseline-learning routes, alphabetically within each group. Shared origin/passenger context appears once when it is consistent across displayed observations; differing definitions retain their own context. Routine zero-value scan diagnostics are omitted.
+
+Sections use friendly destination/cabin names, travel dates, adults, observation counts and the latest per-adult price prominently, with the party total as context. A weekly low is shown only when at least 1% below the latest per-adult price; a different lowest itinerary is described separately. Single observations are never duplicated. Actual segment cabins describe mixed products. “Baseline still learning” replaces the internal insufficient-baseline label; provenance and versions remain in observation diagnostics. Generic limitations appear once; route-specific baggage-fee notes remain labelled unverified. A mixed-cabin premium price classification is not a claim that premium cabin occupies the important long-haul segments.
 
 Summary wording is exactly `Deal observed` if any Deal occurred, otherwise `Cheap observed` if any Cheap occurred, otherwise the counts of persisted classifications. Historical assessments are not recalculated using today's baseline.
 
-Movement uses the comparable subset matching the latest quote: identical full search definition, outbound/return segment airports, airlines and cabins, fare notes, and baggage/protection status. This conservative rule avoids merging changed routes or known baggage conditions; it does not establish full fare-product equivalence. Require at least three observations with distinct first/last timestamps and a positive initial price. Otherwise say `Too little comparable data to assess movement`.
+Movement uses the comparable subset matching the latest quote: identical full search definition, outbound/return segment airports, airlines and cabins, fare notes, and baggage/protection status. This conservative rule avoids merging changed routes or known baggage conditions; it does not establish full fare-product equivalence. Require at least three observations with distinct first/last timestamps and a positive initial price. Otherwise omit route-level movement and include one shared insufficient-data note.
 
 Compare first and last per-adult prices within that subset. An increase/decrease of at least the configured fraction gives `ended higher`/`ended lower`; otherwise `roughly unchanged`. Include the percentage and sample count, explicitly described as not a market trend. Prices can fluctuate between those endpoints.
 
-The footer includes:
+HTML uses simple inline styling, escaped dynamic text, and a matching plain-text alternative. No external assets or active content are included. Existing plain-text saved emails and immediate alerts remain supported. Display rounding never changes classifications or comparisons.
+
+The overview and footer include:
 
 - Successful, failed, no-suitable-itinerary and still-running counts for runs started in the week, using their status when the report is generated.
 - Reserved credits for those runs and potentially charged requests whose attempt timestamp falls in the week. These are different measures and are not exact provider billing.
-- Immediate alerts accepted by SMTP during the week and counts by current status for decisions created during the week. SMTP acceptance is not guaranteed inbox delivery.
+- Immediate alerts accepted by SMTP during the week and failed/unconfirmed delivery counts for decisions created during the week; routine suppression mechanics are omitted. SMTP acceptance is not guaranteed inbox delivery.
 - A current provider quota snapshot, obtained with one free account-status request when preparing the report, and headroom under the configured operating ceiling/reserve. No search endpoint is called. If unavailable or invalid, the report says so; current-period local headroom is explicitly an unverified local estimate. A previous-period quota row is not presented as current.
 
-Week data is read in a repeatable-read transaction, without the API's recent-50 limit. The transaction ends before account and SMTP calls. The generated subject/body and snapshot timestamp are frozen in the delivery record; late observations or later status changes do not rewrite a sent report.
+Week data is read in a repeatable-read transaction, without the API's recent-50 limit. The transaction ends before account and SMTP calls. The generated subject, plain text and HTML and snapshot timestamp are frozen in the delivery record; late observations or later status changes do not rewrite a sent report.
 
 ## Delivery and duplicate prevention
 

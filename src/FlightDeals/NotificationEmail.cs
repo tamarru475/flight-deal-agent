@@ -33,7 +33,9 @@ public sealed class NotificationSettings
     }
 }
 
-public sealed record NotificationEmail(string Subject, string Body);
+public sealed record NotificationEmail(string Subject, string Body,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    string? HtmlBody = null);
 public interface INotificationSender
 {
     Task<DeliveryStatus> Send(NotificationRecord notification, NotificationEmail email, CancellationToken ct);
@@ -96,6 +98,13 @@ public sealed class SmtpNotificationSender(NotificationSettings settings, Weekly
     {
         using var message = new MailMessage(settings.Sender, settings.Recipient, email.Subject, email.Body);
         message.Headers.Add("Message-ID", messageId);
+        if (email.HtmlBody is not null)
+        {
+            // Supply exactly two alternatives; do not duplicate Body as a third MIME part.
+            message.Body = string.Empty;
+            message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(email.Body, Encoding.UTF8, "text/plain"));
+            message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(email.HtmlBody, Encoding.UTF8, "text/html"));
+        }
         using var client = new SmtpClient(settings.SmtpHost, settings.SmtpPort)
         {
             EnableSsl = true, // Require STARTTLS; never fall back to plaintext SMTP.

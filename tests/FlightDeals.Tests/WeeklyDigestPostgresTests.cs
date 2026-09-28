@@ -25,7 +25,7 @@ public class WeeklyDigestPostgresTests
         await test.Process();
         Assert.Equal(1, test.Sender.Calls);
         Assert.Equal(1, test.Account.Calls);
-        Assert.Contains("No observations", test.Sender.LastEmail!.Body);
+        Assert.Contains("No fares recorded this week", test.Sender.LastEmail!.Body);
         Assert.Equal(DigestStatus.Sent, Assert.Single(await test.Store.Recent(default)).Status);
         await test.AssertImmediateStateUntouched();
     }
@@ -130,7 +130,7 @@ public class WeeklyDigestPostgresTests
         test.Account.Fail = true;
         await test.Process();
         Assert.Equal(1, test.Sender.Calls);
-        Assert.Contains("Provider usage: unavailable", test.Sender.LastEmail!.Body);
+        Assert.Contains("Provider usage unavailable", test.Sender.LastEmail!.Body);
     }
 
     [PostgresFact]
