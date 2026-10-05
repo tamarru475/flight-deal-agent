@@ -8,6 +8,10 @@
 !src/FlightDeals/*.cs
 !src/FlightDeals/FlightDeals.csproj
 !src/FlightDeals/appsettings.json
+!src/FlightDeals/config/
+!src/FlightDeals/config/*.json
+!src/FlightDeals/config/profiles/
+!src/FlightDeals/config/profiles/*.json
 !tests/
 !tests/FlightDeals.Tests/
 !tests/FlightDeals.Tests/*.cs

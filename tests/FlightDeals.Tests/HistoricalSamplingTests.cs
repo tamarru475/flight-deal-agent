@@ -6,8 +6,9 @@ namespace FlightDeals.Tests;
 
 public class HistoricalSamplingTests
 {
-    internal static AppSettings Settings() => new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
-        .AddJsonFile("appsettings.json").Build().GetSection("FlightDeals").Get<AppSettings>()!;
+    internal static AppSettings Settings() => FlightDealsConfiguration.Load(
+        new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory).AddJsonFile("appsettings.json").Build(),
+        AppContext.BaseDirectory);
 
     [Fact]
     public void ConfiguredCoverageAndCadencesStayWithinApprovedBudget()
@@ -18,16 +19,18 @@ public class HistoricalSamplingTests
         Assert.False(settings.SchedulerEnabled);
         Assert.Equal(200, settings.MonthlyCreditLimit);
         Assert.Equal(50, settings.ReserveCredits);
-        Assert.Equal(21, settings.Profiles.Length);
+        Assert.Equal(23, settings.Profiles.Length);
         var active = settings.Profiles.Where(p => p.Active).ToArray();
-        Assert.Equal(17, active.Length);
+        Assert.Equal(19, active.Length);
         Assert.Equal(2, active.Count(p => p.TargetIntervalHours == 56));
-        Assert.Equal(9, active.Count(p => p.TargetIntervalHours == 168));
-        Assert.Equal(6, active.Count(p => p.TargetIntervalHours == 336));
+        Assert.Equal(7, active.Count(p => p.TargetIntervalHours == 168));
+        Assert.Equal(10, active.Count(p => p.TargetIntervalHours == 336));
         var worstCase = active.Sum(p => 2 * Math.Ceiling(31 * 24 / p.TargetIntervalHours));
-        Assert.Equal(182, worstCase);
+        Assert.Equal(186, worstCase);
+        Assert.Equal(14, settings.MonthlyCreditLimit - worstCase);
+        Assert.Equal(159.428571, active.Sum(p => 2 * 31 * 24 / p.TargetIntervalHours), 6);
         Assert.Equal(154.285714, active.Sum(p => 2 * 30 * 24 / p.TargetIntervalHours), 6);
-        Assert.All(settings.Profiles.Skip(2), p =>
+        Assert.All(settings.Profiles.Skip(2).Where(p => p.Priority == 20), p =>
         {
             Assert.Equal(20, p.Priority);
             Assert.Equal("AKL", p.Search.Origin);
@@ -111,7 +114,7 @@ public class HistoricalSamplingTests
     }
 
     internal static Journey Journey(SearchProfile profile, bool outbound, string? arrivalLocal = null) => new(240,
-        [new(outbound ? "AKL" : profile.Destinations[0], outbound ? profile.Destinations[0] : "AKL",
+        [new(outbound ? profile.Origin : profile.Destinations[0], outbound ? profile.Destinations[0] : profile.Origin,
             $"{(outbound ? profile.OutboundDate : profile.ReturnDate):yyyy-MM-dd} 10:00", arrivalLocal, 240,
             "Synthetic Air", "TEST 1", profile.RequestedCabin, profile.RequestedCabin.ToString(), false)], [], null, []);
 }

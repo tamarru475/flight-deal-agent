@@ -26,7 +26,7 @@ The API binds to `http://127.0.0.1:5080` and rejects non-loopback clients. Keep 
 
 Rerun `--init-db` when upgrading from the first slice: it adds the scheduler-state table without removing observations or quota history. Initialization does not start the monitoring worker.
 
-Edit `src/FlightDeals/appsettings.json` for dates, trip-duration bounds, eligibility, and baselines, then restart. Environment variables using .NET's double-underscore configuration convention can override settings.
+Edit the files under `src/FlightDeals/config/` for dates, trip-duration bounds, eligibility and baselines, then restart. Application-wide settings stay in `appsettings.json` and support .NET double-underscore environment overrides. See [configuration loading](configuration.md) for file ordering and legacy inline support.
 
 To deliberately enable live scanning, supply `SERPAPI_API_KEY` in the process environment and set `FlightDeals__LiveSearchEnabled=true`. The app does **not** automatically load `.env`. If your ignored local `.env` contains trusted shell assignments, load it without printing its contents:
 

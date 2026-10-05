@@ -81,3 +81,9 @@ docker compose down
 This removes the stack's containers/network and retains the database volume. Do not use `down -v` for a deployed database. Persistence is not backup: preserve the volume and later implement restore-tested backups, including an off-machine copy. A fresh database loses local reservation and pacing history even if provider usage can still be checked.
 
 See [scheduling](scheduling.md) for explicit future enablement and restart/failure behavior. No home-server deployment or live search is part of container packaging validation.
+
+## Profile and baseline files
+
+The image includes the source-controlled `config/baselines.json` and `config/profiles/*.json` files under `/app`. The mounted `appsettings.json` references them relative to the application content root, not relative to the mount's host directory. No additional volume is needed. A configuration change requires an app restart; files are loaded once.
+
+For staged migration, the new application also supports an existing mounted configuration with inline `Profiles` and `ManualBaselines` and no corresponding file references. Do not combine inline profiles with `ProfileFiles`, or inline baselines with `BaselineFile`: startup rejects the conflict. To migrate, remove the inline data and add the committed file references while preserving switches, quota and private environment settings. Keep the old inline configuration for rollback to an older image, which cannot read the new references. This documentation does not migrate any server configuration.

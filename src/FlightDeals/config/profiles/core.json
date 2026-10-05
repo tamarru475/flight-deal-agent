@@ -1,0 +1,49 @@
+[
+  {
+    "Search": {
+      "Id": "tokyo-premium",
+      "Origin": "AKL",
+      "Destinations": [
+        "NRT",
+        "HND"
+      ],
+      "OutboundDate": "2027-05-01",
+      "ReturnDate": "2027-05-15",
+      "MinTripDays": 10,
+      "MaxTripDays": 30,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "PremiumEconomy",
+      "MaxStops": 1,
+      "MaxDurationMinutes": 1800,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": true,
+    "TargetIntervalHours": 56,
+    "Priority": 100
+  },
+  {
+    "Search": {
+      "Id": "europe-economy",
+      "Origin": "AKL",
+      "Destinations": [
+        "CDG"
+      ],
+      "OutboundDate": "2027-05-01",
+      "ReturnDate": "2027-06-15",
+      "MinTripDays": 30,
+      "MaxTripDays": 60,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 1,
+      "MaxDurationMinutes": 1800,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": true,
+    "TargetIntervalHours": 56,
+    "Priority": 90
+  }
+]

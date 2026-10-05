@@ -1,7 +1,7 @@
 using FlightDeals;
 
 var builder = WebApplication.CreateBuilder(args.Where(a => a != "--init-db").ToArray());
-builder.Services.AddFlightDeals(builder.Configuration);
+builder.Services.AddFlightDeals(builder.Configuration, builder.Environment.ContentRootPath);
 
 var app = builder.Build();
 if (args.Contains("--init-db"))

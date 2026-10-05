@@ -1,0 +1,50 @@
+[
+  {
+    "Search": {
+      "Id": "bcn-cyprus-economy-2027-05",
+      "Origin": "BCN",
+      "Destinations": [
+        "LCA",
+        "PFO"
+      ],
+      "OutboundDate": "2027-05-05",
+      "ReturnDate": "2027-05-11",
+      "MinTripDays": 6,
+      "MaxTripDays": 6,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 1,
+      "MaxDurationMinutes": 480,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": true,
+    "TargetIntervalHours": 168,
+    "Priority": 80
+  },
+  {
+    "Search": {
+      "Id": "tlv-cyprus-economy-2027-05",
+      "Origin": "TLV",
+      "Destinations": [
+        "LCA",
+        "PFO"
+      ],
+      "OutboundDate": "2027-05-06",
+      "ReturnDate": "2027-05-10",
+      "MinTripDays": 4,
+      "MaxTripDays": 4,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 0,
+      "MaxDurationMinutes": 180,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": true,
+    "TargetIntervalHours": 168,
+    "Priority": 80
+  }
+]

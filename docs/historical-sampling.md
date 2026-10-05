@@ -4,15 +4,15 @@ These profiles collect exact-date Economy quotes, not recommendations to book im
 
 | Destination | Outbound / return departure (2027) | Max stops each way | Max duration each way | Interval |
 | --- | --- | --- | --- | --- |
-| BNE | Aug 10 / Aug 17 | 0 | 5h | 168h |
-| SYD | Aug 10 / Aug 17 | 0 | 5h | 168h |
+| BNE | Aug 10 / Aug 17 | 0 | 5h | 336h |
+| SYD | Aug 10 / Aug 17 | 0 | 5h | 336h |
 | NAN | Aug 10 / Aug 17 | 0 | 5h | 168h |
 | RAR | Aug 10 / Aug 16 | 0 | 5h | 168h |
 | PER | Aug 10 / Aug 17 | 0 | 9h | 336h |
 | CNS | Aug 10 / Aug 17 | 0 | 7h | 336h |
 | PPT | Aug 10 / Aug 16 | 0 | 7h | 336h |
-| BKK | Aug 3 / Aug 17 | 1 | 18h | 168h |
-| SGN | Aug 3 / Aug 17 | 1 | 18h | 168h |
+| BKK | Aug 3 / Aug 17 | 1 | 18h | 336h |
+| SGN | Aug 3 / Aug 17 | 1 | 18h | 336h |
 | MNL | Aug 3 / Aug 17 | 1 | 18h | 168h |
 | Japan Economy (NRT/HND) | Aug 3 / Aug 17 | 1 | 18h | 168h |
 | SCL | Aug 3 / Aug 17 | **0** | 16h | 168h |
@@ -26,7 +26,7 @@ Europe Economy and Tokyo Premium Economy retain their 56h intervals, priority 90
 
 ## Quota projection
 
-At two reserved credits per scan, the 17 active profiles comprise two at 56h, nine at 168h and six at 336h. Projected usage is 144 credits per 28 days, 154.3 per 30 days, or 159.4 per 31 days before pacing delays. A conservative 31-day bound is `2 × 14 × 2 + 9 × 5 × 2 + 6 × 3 × 2 = 182` credits, leaving 18 below the 200-credit operating ceiling. The final 50 credits of the free 250-credit allowance remain protected. Manual scans and other account usage consume that headroom; October profiles are not included in the active totals.
+At two reserved credits per scan, the 19 active profiles (including the two planned-trip Cyprus searches) comprise two at 56h, seven at 168h and ten at 336h. Projected usage is 144 credits per 28 days, 154.3 per 30 days, or 159.4 per 31 days before pacing delays. A conservative 31-day bound is `2 × 14 × 2 + 7 × 5 × 2 + 10 × 3 × 2 = 186` credits, leaving 14 below the 200-credit operating ceiling. The final 50 credits of the free 250-credit allowance remain protected. Manual scans and other account usage consume that headroom; October profiles are not included in the active totals.
 
 Targets are not guarantees. Global pacing can delay lower-priority profiles; failed/early-exit scans retain their two-credit reservations. Never-scanned profiles become eligible under normal pacing, not in a forced deployment burst. The initial partial renewal period also includes existing account usage. The digest's movement rule still requires three comparable observations within its reporting week, so weekly/fortnightly sampling will normally report too little comparable data for movement.
 
@@ -45,3 +45,14 @@ The optional field is persisted in new search snapshots and included in digest c
 `akl-europe-economy` is now manual version 2: Deal below NZ$2,200 per adult; Cheap below NZ$2,700; Normal below NZ$3,500; Expensive at or above NZ$3,500. This records user-approved newer route/date evidence (roughly NZ$3,000 normal and NZ$2,500 cheap), not learned market truth.
 
 New assessments store version 2 and its thresholds. Historical observations retain their original assessment, thresholds and version; immediate-alert suppression state is not reset. A future observation may legitimately receive a different classification under the revised baseline.
+
+## Planned-trip Cyprus searches
+
+These are higher-priority planned-trip searches, not historical sampling. Both use Economy, two adults, NZD, weekly (168h) scans and priority 80, below Europe/Tokyo and above historical sampling. Known separate tickets and connection airport changes are excluded. Neither has a manual baseline or destination-local-night rule.
+
+| Profile | Origin | Destination alternatives | Outbound / return departure | Max stops | Max duration each way |
+| --- | --- | --- | --- | --- | --- |
+| bcn-cyprus-economy-2027-05 | BCN | LCA, PFO | 5–11 May 2027 | 1 | 8h |
+| tlv-cyprus-economy-2027-05 | TLV | LCA, PFO | 6–10 May 2027 | 0 | 3h |
+
+Both airports share one search; either may be used on either direction. No same-airport enforcement is added. The existing selected-outbound/return-options flow still reserves at most two credits, without exhaustively checking every airport pairing. BNE, SYD, BKK and SGN remain active at 336h to fund this coverage.

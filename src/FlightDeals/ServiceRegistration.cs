@@ -5,10 +5,9 @@ namespace FlightDeals;
 
 public static class ServiceRegistration
 {
-    public static IServiceCollection AddFlightDeals(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddFlightDeals(this IServiceCollection services, IConfiguration configuration, string contentRoot)
     {
-        var settings = configuration.GetSection("FlightDeals").Get<AppSettings>() ?? new();
-        settings.Validate();
+        var settings = FlightDealsConfiguration.Load(configuration, contentRoot);
         var connectionString = configuration.GetConnectionString("FlightDeals")
             ?? throw new InvalidOperationException("Set ConnectionStrings__FlightDeals to your project PostgreSQL database.");
         services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));

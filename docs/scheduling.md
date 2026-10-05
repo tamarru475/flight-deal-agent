@@ -4,7 +4,7 @@ The application hosts one simple background worker. Both `LiveSearchEnabled` and
 
 ## Configuration
 
-`FlightDeals.Profiles` is an ordered list of entries with these fields:
+Profiles are explicitly loaded from the ordered `FlightDeals.ProfileFiles` list (or legacy inline `FlightDeals.Profiles`). Each file contains entries with these fields; see [configuration loading](configuration.md):
 
 ```json
 {

@@ -1,0 +1,95 @@
+[
+  {
+    "Search": {
+      "Id": "bne-economy-2027-10",
+      "Origin": "AKL",
+      "Destinations": [
+        "BNE"
+      ],
+      "OutboundDate": "2027-10-12",
+      "ReturnDate": "2027-10-19",
+      "MinTripDays": 7,
+      "MaxTripDays": 7,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 0,
+      "MaxDurationMinutes": 300,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": false,
+    "TargetIntervalHours": 336,
+    "Priority": 20
+  },
+  {
+    "Search": {
+      "Id": "syd-economy-2027-10",
+      "Origin": "AKL",
+      "Destinations": [
+        "SYD"
+      ],
+      "OutboundDate": "2027-10-12",
+      "ReturnDate": "2027-10-19",
+      "MinTripDays": 7,
+      "MaxTripDays": 7,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 0,
+      "MaxDurationMinutes": 300,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": false,
+    "TargetIntervalHours": 336,
+    "Priority": 20
+  },
+  {
+    "Search": {
+      "Id": "nan-economy-2027-10",
+      "Origin": "AKL",
+      "Destinations": [
+        "NAN"
+      ],
+      "OutboundDate": "2027-10-12",
+      "ReturnDate": "2027-10-19",
+      "MinTripDays": 7,
+      "MaxTripDays": 7,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 0,
+      "MaxDurationMinutes": 300,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": false,
+    "TargetIntervalHours": 336,
+    "Priority": 20
+  },
+  {
+    "Search": {
+      "Id": "rar-economy-2027-10",
+      "Origin": "AKL",
+      "Destinations": [
+        "RAR"
+      ],
+      "OutboundDate": "2027-10-12",
+      "ReturnDate": "2027-10-18",
+      "MinTripDays": 6,
+      "MaxTripDays": 6,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 0,
+      "MaxDurationMinutes": 300,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true,
+      "RequiredDestinationNights": 7
+    },
+    "Active": false,
+    "TargetIntervalHours": 336,
+    "Priority": 20
+  }
+]

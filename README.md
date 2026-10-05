@@ -14,7 +14,7 @@ dotnet run --project src/FlightDeals -- --init-db
 dotnet run --project src/FlightDeals
 ```
 
-Inspect the local API at `http://127.0.0.1:5080/profile`. Live searching is disabled by default. Configure dates and baselines in `src/FlightDeals/appsettings.json`; see the local-development guide before enabling a quota-consuming search.
+Inspect the local API at `http://127.0.0.1:5080/profile`. Live searching is disabled by default. Configure dates and baselines in the [configuration files](docs/configuration.md); see the local-development guide before enabling a quota-consuming search.
 
 ```sh
 dotnet test FlightDeals.slnx

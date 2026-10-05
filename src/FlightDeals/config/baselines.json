@@ -1,0 +1,67 @@
+[
+  {
+    "Id": "akl-europe-economy",
+    "Version": 2,
+    "Origin": "AKL",
+    "Destinations": [
+      "CDG",
+      "MAD",
+      "BCN",
+      "FCO"
+    ],
+    "MinTripDays": 30,
+    "MaxTripDays": 60,
+    "RequestedCabin": "Economy",
+    "Applicability": "AllSegmentsInRequestedCabin",
+    "Currency": "NZD",
+    "PriceBasis": "PerAdult",
+    "Assumption": "User-approved manual revision based on newer real route/date evidence: approximately NZ$3,000 per adult is normal and approximately NZ$2,500 is cheap. Not a learned historical baseline; revise as comparable observations accumulate.",
+    "Thresholds": {
+      "DealBelow": 2200,
+      "CheapBelow": 2700,
+      "ExpensiveAtOrAbove": 3500
+    }
+  },
+  {
+    "Id": "akl-tokyo-premium-economy",
+    "Version": 2,
+    "Origin": "AKL",
+    "Destinations": [
+      "NRT",
+      "HND"
+    ],
+    "MinTripDays": 10,
+    "MaxTripDays": 30,
+    "RequestedCabin": "PremiumEconomy",
+    "Applicability": "AllSegmentsInRequestedCabin",
+    "Currency": "NZD",
+    "PriceBasis": "PerAdult",
+    "Thresholds": {
+      "DealBelow": 2500,
+      "CheapBelow": 3000,
+      "ExpensiveAtOrAbove": 4500
+    },
+    "Assumption": "User-approved cold-start thresholds, anchored loosely to one observed quote. Not learned market history. Revise as comparable observations accumulate."
+  },
+  {
+    "Id": "akl-tokyo-premium-economy-mixed",
+    "Version": 1,
+    "Origin": "AKL",
+    "Destinations": [
+      "NRT",
+      "HND"
+    ],
+    "MinTripDays": 10,
+    "MaxTripDays": 30,
+    "RequestedCabin": "PremiumEconomy",
+    "Applicability": "MixedCabin",
+    "Currency": "NZD",
+    "PriceBasis": "PerAdult",
+    "Thresholds": {
+      "DealBelow": 2500,
+      "CheapBelow": 3000,
+      "ExpensiveAtOrAbove": 4500
+    },
+    "Assumption": "User-approved cold-start thresholds, anchored loosely to one observed quote. Not learned market history. Revise as comparable observations accumulate. A mixed-cabin price classification does not establish that Premium Economy is on the important long-haul segments."
+  }
+]

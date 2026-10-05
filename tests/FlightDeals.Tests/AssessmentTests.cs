@@ -18,7 +18,7 @@ public class AssessmentTests
     {
         var configuration = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json").Build();
-        var settings = configuration.GetSection("FlightDeals").Get<AppSettings>()!;
+        var settings = FlightDealsConfiguration.Load(configuration, AppContext.BaseDirectory);
         settings.Validate();
         foreach (var returnCabin in new[] { Cabin.PremiumEconomy, Cabin.Economy })
         {

@@ -58,7 +58,7 @@ public class ScheduledPostgresTests
                 ["FlightDeals:LiveSearchEnabled"] = "true",
                 ["FlightDeals:SchedulerEnabled"] = "true"
             }).Build();
-        var settings = configuration.GetSection("FlightDeals").Get<AppSettings>()!;
+        var settings = FlightDealsConfiguration.Load(configuration, AppContext.BaseDirectory);
         settings.Validate();
         Assert.Equal(new[] { "CDG" }, settings.Profiles[1].Search.Destinations);
         var schema = "test_" + Guid.NewGuid().ToString("N");
