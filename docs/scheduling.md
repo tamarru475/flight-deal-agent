@@ -44,7 +44,7 @@ If global pacing allows a dispatch, due profiles are ordered by descending prior
 
 ## Budget pacing and safety
 
-Before every manual or scheduled flight search, the same free account check and `Budget.Reserve` enforce the 200-credit ceiling and at least 50 untouched credits. Unknown quota/renewal data pauses scanning. Reservations remain conservative even when a response is cached or a request fails.
+Before every manual or scheduled flight search, the same free account check and `Budget.Reserve` enforce the 240-credit ceiling and at least 10 untouched credits. Unknown quota/renewal data pauses scanning. Reservations remain conservative even when a response is cached or a request fails.
 
 After reserving two credits, the planner calculates remaining complete scan slots (including this dispatch) and divides the time until the provider renewal date by those slots. That interval becomes the minimum delay before the next automatic dispatch, with a one-minute floor. For example, 20 days and 100 available checks produce 4 hours 48 minutes between automatic dispatches; only two checks produce a 10-day interval. Actual checks are also constrained by each profile's target interval.
 

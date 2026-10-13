@@ -36,7 +36,7 @@ public static class SchedulePlanner
 
     public static DateTimeOffset NextDispatch(BudgetState reservation, AppSettings settings, DateTimeOffset now)
     {
-        var ceiling = Math.Min(settings.MonthlyCreditLimit, 250 - settings.ReserveCredits);
+        var ceiling = Budget.EffectiveLimit(settings);
         // Include this dispatch in the slots spread over the rest of the verified provider period.
         var slots = (ceiling - reservation.AccountedCredits) / Budget.CreditsPerScan + 1;
         var renewal = new DateTimeOffset(reservation.PeriodEnd.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);

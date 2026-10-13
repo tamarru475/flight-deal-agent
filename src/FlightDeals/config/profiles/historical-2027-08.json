@@ -19,7 +19,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 108,
     "Priority": 20
   },
   {
@@ -42,7 +42,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 108,
     "Priority": 20
   },
   {
@@ -65,7 +65,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 168,
+    "TargetIntervalHours": 108,
     "Priority": 20
   },
   {
@@ -112,7 +112,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 168,
     "Priority": 20
   },
   {
@@ -135,7 +135,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 168,
     "Priority": 20
   },
   {
@@ -159,7 +159,7 @@
       "RequiredDestinationNights": 7
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 168,
     "Priority": 20
   },
   {
@@ -182,7 +182,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 108,
     "Priority": 20
   },
   {
@@ -205,7 +205,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 108,
     "Priority": 20
   },
   {
@@ -252,7 +252,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 168,
+    "TargetIntervalHours": 108,
     "Priority": 20
   },
   {
@@ -298,7 +298,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 168,
     "Priority": 20
   },
   {
@@ -321,7 +321,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 168,
     "Priority": 20
   },
   {
@@ -344,7 +344,7 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 336,
+    "TargetIntervalHours": 168,
     "Priority": 20
   }
 ]

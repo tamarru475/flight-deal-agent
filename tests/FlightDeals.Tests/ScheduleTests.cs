@@ -18,6 +18,39 @@ public class ScheduleTests
     private static ScheduleState Empty => new(new(), DateTimeOffset.MinValue);
 
     [Fact]
+    public async Task FasterConfigurationAndRestartRetainThePersistedDispatchGate()
+    {
+        var store = new MemoryStore();
+        var provider = new FakeProvider(store);
+        var oldSettings = new AppSettings
+        {
+            LiveSearchEnabled = true, SchedulerEnabled = true, MonthlyCreditLimit = 200, ReserveCredits = 50,
+            Profiles = [Profile("a", interval: 336), Profile("b", interval: 336)]
+        };
+        Assert.NotNull(await new ScanService(provider, store, oldSettings, new FixedClock()).RunDue(default));
+        var gate = store.Schedule.NextDispatch;
+        var revised = Settings(Profile("a", interval: 108), Profile("b", interval: 108));
+        Assert.Null(await new ScanService(provider, store, revised, new FixedClock()).RunDue(default));
+        Assert.Equal(gate, store.Schedule.NextDispatch);
+        Assert.Equal(2, provider.Calls);
+        Assert.Equal("b", SchedulePlanner.SelectDue(revised.Profiles, store.Schedule, gate)!.Search.Id);
+    }
+
+    [Fact]
+    public async Task ManualActivityConsumesScheduledHeadroom()
+    {
+        var store = new MemoryStore { Budget = new(new(2026, 10, 1), 238, 0) };
+        var provider = new FakeProvider(store);
+        var settings = Settings(Profile("a"), Profile("b"));
+        var service = new ScanService(provider, store, settings, new FixedClock());
+        await service.Run("a", default);
+        Assert.Equal(240, store.Budget!.AccountedCredits);
+        Assert.Null(await service.RunDue(default));
+        await Assert.ThrowsAsync<ScanException>(() => service.Run("b", default));
+        Assert.Equal(2, provider.Calls);
+    }
+
+    [Fact]
     public void ChoosesPriorityThenOldestDueThenOrdinalId()
     {
         var high = Profile("high", 200);
@@ -48,8 +81,8 @@ public class ScheduleTests
     public void SpreadsRemainingSlotsOverProviderPeriod()
     {
         var abundant = SchedulePlanner.NextDispatch(new(new(2026, 10, 1), 2, 0), TestData.Settings, TestData.Now);
-        var scarce = SchedulePlanner.NextDispatch(new(new(2026, 10, 1), 198, 0), TestData.Settings, TestData.Now);
-        Assert.Equal(TestData.Now.AddMinutes(288), abundant);
+        var scarce = SchedulePlanner.NextDispatch(new(new(2026, 10, 1), 238, 0), TestData.Settings, TestData.Now);
+        Assert.Equal(TestData.Now.AddMinutes(240), abundant);
         Assert.Equal(TestData.Now.AddDays(10), scarce);
     }
 
@@ -81,12 +114,12 @@ public class ScheduleTests
     [Fact]
     public async Task ManualAndScheduledProfilesShareTheSameCeiling()
     {
-        var store = new MemoryStore { Budget = new(new(2026, 10, 1), 198, 0) };
+        var store = new MemoryStore { Budget = new(new(2026, 10, 1), 238, 0) };
         var provider = new FakeProvider(store);
         var service = new ScanService(provider, store, Settings(Profile("a"), Profile("b")), new FixedClock());
         Assert.NotNull(await service.RunDue(default));
         await Assert.ThrowsAsync<ScanException>(() => service.Run("b", default));
-        Assert.Equal(200, store.Budget!.AccountedCredits);
+        Assert.Equal(240, store.Budget!.AccountedCredits);
         Assert.Equal(2, provider.Calls);
     }
 

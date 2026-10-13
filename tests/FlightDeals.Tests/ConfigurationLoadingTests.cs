@@ -8,15 +8,41 @@ namespace FlightDeals.Tests;
 public class ConfigurationLoadingTests
 {
     [Fact]
-    public void ExtractedConfigurationMatchesCompleteOrderedLegacyConfiguration()
+    public void ConfigurationMatchesLegacySnapshotExceptApprovedDestinationsQuotaAndCadences()
     {
         var legacy = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("Fixtures/configuration-before-split.json").Build();
         var expected = legacy.GetSection("FlightDeals").Get<AppSettings>()!;
         var actual = HistoricalSamplingTests.Settings();
-        Assert.Equal(JsonSerializer.Serialize(expected, JsonDefaults.Options), JsonSerializer.Serialize(actual, JsonDefaults.Options));
         Assert.Equal(JsonSerializer.Serialize(expected, JsonDefaults.Options),
             JsonSerializer.Serialize(FlightDealsConfiguration.Load(legacy, AppContext.BaseDirectory), JsonDefaults.Options));
+        // Keep the snapshot intact; normalize only the explicitly approved changes.
+        for (var i = 0; i < expected.Profiles.Length; i++)
+        {
+            var profile = expected.Profiles[i];
+            if (profile.Search.Id is "bcn-cyprus-economy-2027-05" or "tlv-cyprus-economy-2027-05")
+            {
+                Assert.NotEqual(NotificationPolicy.Scope(profile.Search), NotificationPolicy.Scope(actual.Profiles[i].Search));
+                expected.Profiles[i] = profile with { Search = profile.Search with { Destinations = ["LCA"] } };
+            }
+        }
+        for (var i = 0; i < expected.Profiles.Length; i++)
+        {
+            var profile = expected.Profiles[i];
+            if (profile.Active && profile.Priority == 20)
+            {
+                var route = profile.Search.Id.Split('-')[0];
+                var interval = route is "bne" or "syd" or "nan" or "bkk" or "sgn" or "tokyo" ? 108 : 168;
+                expected.Profiles[i] = profile with { TargetIntervalHours = interval };
+            }
+        }
+        expected = new AppSettings
+        {
+            LiveSearchEnabled = expected.LiveSearchEnabled, SchedulerEnabled = expected.SchedulerEnabled,
+            MonthlyCreditLimit = 240, ReserveCredits = 10, Profile = expected.Profile,
+            Profiles = expected.Profiles, ManualBaselines = expected.ManualBaselines
+        };
+        Assert.Equal(JsonSerializer.Serialize(expected, JsonDefaults.Options), JsonSerializer.Serialize(actual, JsonDefaults.Options));
         Assert.Equal("tokyo-premium", actual.DefaultProfile.Id);
     }
 
@@ -128,7 +154,7 @@ public class ConfigurationLoadingTests
     public void InvalidApplicationSettingsStillFailValidation()
     {
         var config = Builder().AddInMemoryCollection(new Dictionary<string, string?>
-        { ["FlightDeals:MonthlyCreditLimit"] = "201" }).Build();
+        { ["FlightDeals:MonthlyCreditLimit"] = "241" }).Build();
         Assert.Throws<ScanException>(() => FlightDealsConfiguration.Load(config, AppContext.BaseDirectory));
     }
 

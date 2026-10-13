@@ -59,13 +59,13 @@ public class PostgresTests
             {
                 var interrupted = new ScanRun(Guid.NewGuid(), TestData.Now, TestData.Profile, RunStatus.Running, 2, []);
                 interruptedId = interrupted.Id;
-                await session.Reserve(new(new(2026, 10, 1), 200, 0), interrupted, default);
+                await session.Reserve(new(new(2026, 10, 1), 240, 0), interrupted, default);
             }
             var provider = new FakeProvider();
             await Assert.ThrowsAsync<ScanException>(() => new ScanService(provider, restarted, TestData.Settings, new FixedClock()).Run(default));
             Assert.Equal(0, provider.Calls);
             Assert.Equal(RunStatus.Failed, (await restarted.Run(interruptedId, default))!.Status);
-            Assert.Equal(200, (await restarted.Quota(default))!.AccountedCredits);
+            Assert.Equal(240, (await restarted.Quota(default))!.AccountedCredits);
         }
         finally
         {

@@ -5,8 +5,8 @@ namespace FlightDeals;
 public sealed class AppSettings
 {
     public bool LiveSearchEnabled { get; init; }
-    public int MonthlyCreditLimit { get; init; } = 200;
-    public int ReserveCredits { get; init; } = 50;
+    public int MonthlyCreditLimit { get; init; } = 240;
+    public int ReserveCredits { get; init; } = 10;
     public SearchProfile Profile { get; init; } = new(); // Legacy single-profile configuration.
     public bool SchedulerEnabled { get; init; }
     public MonitoredProfile[] Profiles { get; init; } = [];
@@ -16,8 +16,8 @@ public sealed class AppSettings
 
     public void Validate()
     {
-        if (MonthlyCreditLimit is < 2 or > 200 || ReserveCredits < 50 || MonthlyCreditLimit + ReserveCredits > 250)
-            throw new ScanException("Budget must leave at least 50 credits and allow no more than 200.");
+        if (MonthlyCreditLimit is < 2 or > 240 || ReserveCredits is < 10 or > 248 || MonthlyCreditLimit + ReserveCredits > Budget.FreeAllowance)
+            throw new ScanException("Budget must allow 2–240 credits, reserve at least 10, and total no more than 250.");
         var profiles = MonitoredProfiles;
         if (profiles.Select(p => p.Search.Id).Distinct().Count() != profiles.Length)
             throw new ScanException("Search profile IDs must be unique.");

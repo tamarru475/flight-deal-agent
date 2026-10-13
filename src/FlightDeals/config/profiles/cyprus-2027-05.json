@@ -4,8 +4,7 @@
       "Id": "bcn-cyprus-economy-2027-05",
       "Origin": "BCN",
       "Destinations": [
-        "LCA",
-        "PFO"
+        "LCA"
       ],
       "OutboundDate": "2027-05-05",
       "ReturnDate": "2027-05-11",
@@ -28,8 +27,7 @@
       "Id": "tlv-cyprus-economy-2027-05",
       "Origin": "TLV",
       "Destinations": [
-        "LCA",
-        "PFO"
+        "LCA"
       ],
       "OutboundDate": "2027-05-06",
       "ReturnDate": "2027-05-10",

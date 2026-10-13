@@ -17,7 +17,7 @@ public class CyprusProfileTests
         Assert.Equal(168, monitored.TargetIntervalHours);
         Assert.Equal(80, monitored.Priority);
         Assert.Equal(origin.ToUpperInvariant(), profile.Origin);
-        Assert.Equal(new[] { "LCA", "PFO" }, profile.Destinations);
+        Assert.Equal(new[] { "LCA" }, profile.Destinations);
         Assert.Equal(new DateOnly(2027, 5, outbound), profile.OutboundDate);
         Assert.Equal(new DateOnly(2027, 5, inbound), profile.ReturnDate);
         Assert.Equal(inbound - outbound, profile.MinTripDays);
@@ -40,11 +40,13 @@ public class CyprusProfileTests
     [InlineData("syd")]
     [InlineData("bkk")]
     [InlineData("sgn")]
-    public void RebalancedHistoricalProfilesRemainActiveAtFortnightlyCadence(string route)
+    [InlineData("nan")]
+    [InlineData("tokyo")]
+    public void DenserHistoricalProfilesRemainActiveAt108Hours(string route)
     {
         var profile = HistoricalSamplingTests.Settings().Profiles.Single(p => p.Search.Id == $"{route}-economy-2027-08");
         Assert.True(profile.Active);
-        Assert.Equal(336, profile.TargetIntervalHours);
+        Assert.Equal(108, profile.TargetIntervalHours);
         Assert.Equal(20, profile.Priority);
     }
 }

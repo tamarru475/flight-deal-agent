@@ -47,7 +47,7 @@ public class ScanTests
     [Fact]
     public async Task ReserveFailureMakesNoFlightRequests()
     {
-        var store = new MemoryStore { Budget = new(new(2026, 10, 1), 200, 200) };
+        var store = new MemoryStore { Budget = new(new(2026, 10, 1), 240, 240) };
         var provider = new FakeProvider(store);
         await Assert.ThrowsAsync<ScanException>(() => new ScanService(provider, store, TestData.Settings, new FixedClock()).Run(default));
         Assert.Equal(0, provider.Calls);

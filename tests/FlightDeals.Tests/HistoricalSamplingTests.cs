@@ -17,19 +17,20 @@ public class HistoricalSamplingTests
         settings.Validate();
         Assert.False(settings.LiveSearchEnabled);
         Assert.False(settings.SchedulerEnabled);
-        Assert.Equal(200, settings.MonthlyCreditLimit);
-        Assert.Equal(50, settings.ReserveCredits);
+        Assert.Equal(240, settings.MonthlyCreditLimit);
+        Assert.Equal(10, settings.ReserveCredits);
         Assert.Equal(23, settings.Profiles.Length);
         var active = settings.Profiles.Where(p => p.Active).ToArray();
         Assert.Equal(19, active.Length);
         Assert.Equal(2, active.Count(p => p.TargetIntervalHours == 56));
-        Assert.Equal(7, active.Count(p => p.TargetIntervalHours == 168));
-        Assert.Equal(10, active.Count(p => p.TargetIntervalHours == 336));
+        Assert.Equal(11, active.Count(p => p.TargetIntervalHours == 168));
+        Assert.Equal(6, active.Count(p => p.TargetIntervalHours == 108));
         var worstCase = active.Sum(p => 2 * Math.Ceiling(31 * 24 / p.TargetIntervalHours));
-        Assert.Equal(186, worstCase);
-        Assert.Equal(14, settings.MonthlyCreditLimit - worstCase);
-        Assert.Equal(159.428571, active.Sum(p => 2 * 31 * 24 / p.TargetIntervalHours), 6);
-        Assert.Equal(154.285714, active.Sum(p => 2 * 30 * 24 / p.TargetIntervalHours), 6);
+        Assert.Equal(250, worstCase);
+        Assert.Equal(240, Budget.EffectiveLimit(settings));
+        Assert.Equal(10, Budget.FreeAllowance - Budget.EffectiveLimit(settings));
+        Assert.Equal(233.238095, active.Sum(p => 2 * 31 * 24 / p.TargetIntervalHours), 6);
+        Assert.Equal(225.714286, active.Sum(p => 2 * 30 * 24 / p.TargetIntervalHours), 6);
         Assert.All(settings.Profiles.Skip(2).Where(p => p.Priority == 20), p =>
         {
             Assert.Equal(20, p.Priority);
@@ -48,7 +49,7 @@ public class HistoricalSamplingTests
         });
         Assert.All(settings.Profiles.Where(p => p.Search.Destinations.Contains("SCL")), p => Assert.Equal(0, p.Search.MaxStops));
         foreach (var name in new[] { "per", "cns" })
-            Assert.Equal(336, settings.Profiles.Single(p => p.Search.Id == $"{name}-economy-2027-08").TargetIntervalHours);
+            Assert.Equal(168, settings.Profiles.Single(p => p.Search.Id == $"{name}-economy-2027-08").TargetIntervalHours);
         Assert.Equal(3, settings.ManualBaselines.Length);
     }
 

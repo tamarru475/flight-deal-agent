@@ -2,7 +2,7 @@
 
 A personal flight-deal monitoring project built with .NET 10, PostgreSQL, and SerpApi. The aim is to identify worthwhile fares using itinerary quality and comparable prices, within a strict **$0/month** operating budget.
 
-The monitor supports manual and automatic searches across configured exact-date profiles, initially AKL–Tokyo Premium Economy and AKL–Paris Economy for two adults in NZD. It stores paired itineraries and segment-level cabin information, enforces a 200-credit monthly limit with a 50-credit reserve, and explains assessments against configurable manual baselines.
+The monitor supports manual and automatic searches across configured exact-date profiles, initially AKL–Tokyo Premium Economy and AKL–Paris Economy for two adults in NZD. It stores paired itineraries and segment-level cabin information, enforces a 240-credit monthly limit with a 10-credit reserve, and explains assessments against configurable manual baselines.
 
 ## Quick start
 
