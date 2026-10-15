@@ -25,13 +25,13 @@
   },
   {
     "Search": {
-      "Id": "europe-economy",
+      "Id": "cdg-economy-2027-04-22",
       "Origin": "AKL",
       "Destinations": [
         "CDG"
       ],
-      "OutboundDate": "2027-05-01",
-      "ReturnDate": "2027-06-15",
+      "OutboundDate": "2027-04-22",
+      "ReturnDate": "2027-06-03",
       "MinTripDays": 30,
       "MaxTripDays": 60,
       "Adults": 2,
@@ -43,7 +43,53 @@
       "ExcludeAirportChanges": true
     },
     "Active": true,
-    "TargetIntervalHours": 56,
+    "TargetIntervalHours": 168,
+    "Priority": 90
+  },
+  {
+    "Search": {
+      "Id": "cdg-economy-2027-04-24",
+      "Origin": "AKL",
+      "Destinations": [
+        "CDG"
+      ],
+      "OutboundDate": "2027-04-24",
+      "ReturnDate": "2027-06-03",
+      "MinTripDays": 30,
+      "MaxTripDays": 60,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 1,
+      "MaxDurationMinutes": 1800,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": true,
+    "TargetIntervalHours": 168,
+    "Priority": 90
+  },
+  {
+    "Search": {
+      "Id": "bcn-economy-2027-04-22",
+      "Origin": "AKL",
+      "Destinations": [
+        "BCN"
+      ],
+      "OutboundDate": "2027-04-22",
+      "ReturnDate": "2027-06-03",
+      "MinTripDays": 30,
+      "MaxTripDays": 60,
+      "Adults": 2,
+      "Currency": "NZD",
+      "RequestedCabin": "Economy",
+      "MaxStops": 1,
+      "MaxDurationMinutes": 1800,
+      "ExcludeKnownSeparateTickets": true,
+      "ExcludeAirportChanges": true
+    },
+    "Active": true,
+    "TargetIntervalHours": 168,
     "Priority": 90
   }
 ]

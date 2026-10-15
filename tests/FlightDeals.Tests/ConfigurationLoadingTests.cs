@@ -22,7 +22,7 @@ public class ConfigurationLoadingTests
             var profile = expected.Profiles[i];
             if (profile.Search.Id is "bcn-cyprus-economy-2027-05" or "tlv-cyprus-economy-2027-05")
             {
-                Assert.NotEqual(NotificationPolicy.Scope(profile.Search), NotificationPolicy.Scope(actual.Profiles[i].Search));
+                Assert.NotEqual(NotificationPolicy.Scope(profile.Search), NotificationPolicy.Scope(actual.Profiles.Single(p => p.Search.Id == profile.Search.Id).Search));
                 expected.Profiles[i] = profile with { Search = profile.Search with { Destinations = ["LCA"] } };
             }
         }
@@ -40,7 +40,11 @@ public class ConfigurationLoadingTests
         {
             LiveSearchEnabled = expected.LiveSearchEnabled, SchedulerEnabled = expected.SchedulerEnabled,
             MonthlyCreditLimit = 240, ReserveCredits = 10, Profile = expected.Profile,
-            Profiles = expected.Profiles, ManualBaselines = expected.ManualBaselines
+            Profiles = expected.Profiles.SelectMany(p => p.Search.Id == "europe-economy"
+                ? new[]
+                {
+                    ReplacementEurope(p, "CDG", 22), ReplacementEurope(p, "CDG", 24), ReplacementEurope(p, "BCN", 22)
+                } : new[] { p }).ToArray(), ManualBaselines = expected.ManualBaselines
         };
         Assert.Equal(JsonSerializer.Serialize(expected, JsonDefaults.Options), JsonSerializer.Serialize(actual, JsonDefaults.Options));
         Assert.Equal("tokyo-premium", actual.DefaultProfile.Id);
@@ -62,9 +66,9 @@ public class ConfigurationLoadingTests
         var config = Builder().AddInMemoryCollection(new Dictionary<string, string?>
         { ["FlightDeals:ProfileFiles:0"] = "config/profiles/core.json" }).Build();
         var settings = FlightDealsConfiguration.Load(config, AppContext.BaseDirectory);
-        Assert.Equal(2, settings.Profiles.Length);
+        Assert.Equal(4, settings.Profiles.Length);
         Assert.Equal("tokyo-premium", settings.Profiles[0].Search.Id);
-        Assert.Equal("europe-economy", settings.Profiles[1].Search.Id);
+        Assert.Equal("cdg-economy-2027-04-22", settings.Profiles[1].Search.Id);
     }
 
     [Fact]
@@ -141,7 +145,7 @@ public class ConfigurationLoadingTests
             var settings = FlightDealsConfiguration.Load(Builder().AddEnvironmentVariables(prefix).Build(), AppContext.BaseDirectory);
             Assert.True(settings.LiveSearchEnabled);
             Assert.Equal(190, settings.MonthlyCreditLimit);
-            Assert.Equal(23, settings.Profiles.Length);
+            Assert.Equal(25, settings.Profiles.Length);
         }
         finally
         {
@@ -157,6 +161,16 @@ public class ConfigurationLoadingTests
         { ["FlightDeals:MonthlyCreditLimit"] = "241" }).Build();
         Assert.Throws<ScanException>(() => FlightDealsConfiguration.Load(config, AppContext.BaseDirectory));
     }
+
+    private static MonitoredProfile ReplacementEurope(MonitoredProfile original, string airport, int day) => original with
+    {
+        TargetIntervalHours = 168,
+        Search = original.Search with
+        {
+            Id = $"{airport.ToLowerInvariant()}-economy-2027-04-{day}", Destinations = [airport],
+            OutboundDate = new(2027, 4, day), ReturnDate = new(2027, 6, 3)
+        }
+    };
 
     private static IConfigurationBuilder Builder() => new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
         .AddJsonFile("appsettings.json");

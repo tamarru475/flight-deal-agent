@@ -9,6 +9,50 @@ namespace FlightDeals.Tests;
 public class ScheduledPostgresTests
 {
     [PostgresFact]
+    public async Task RetiredEuropeHistoryRemainsUnchangedAfterLoadingReplacementProfiles()
+    {
+        var legacyConfiguration = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("Fixtures/configuration-before-split.json").Build();
+        var legacy = FlightDealsConfiguration.Load(legacyConfiguration, AppContext.BaseDirectory);
+        var retired = legacy.Profiles.Single(p => p.Search.Id == "europe-economy").Search;
+        var oldSettings = new AppSettings { LiveSearchEnabled = true, Profile = retired, ManualBaselines = legacy.ManualBaselines };
+        var schema = "test_" + Guid.NewGuid().ToString("N");
+        var cs = Environment.GetEnvironmentVariable("TEST_POSTGRES")!;
+        await using var admin = NpgsqlDataSource.Create(cs);
+        await using (var create = admin.CreateCommand($"CREATE SCHEMA {schema}")) await create.ExecuteNonQueryAsync();
+        try
+        {
+            var connection = new NpgsqlConnectionStringBuilder(cs) { SearchPath = schema }.ConnectionString;
+            await using var database = NpgsqlDataSource.Create(connection);
+            var store = new PostgresStore(database);
+            await store.Initialize(default);
+            var provider = new ProfileProvider();
+            var run = await new ScanService(provider, store, oldSettings, new FixedClock()).Run(default);
+            var original = await store.Observation(run.ObservationId!.Value, default);
+            var originalJson = System.Text.Json.JsonSerializer.Serialize(original, JsonDefaults.Options);
+            var configuration = new ConfigurationBuilder().SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json").AddInMemoryCollection(new Dictionary<string, string?>
+                { ["FlightDeals:LiveSearchEnabled"] = "true", ["FlightDeals:SchedulerEnabled"] = "true" }).Build();
+            var replacement = FlightDealsConfiguration.Load(configuration, AppContext.BaseDirectory);
+            await using var restartedDatabase = NpgsqlDataSource.Create(connection);
+            var restartedStore = new PostgresStore(restartedDatabase);
+            Assert.Null(await new ScanService(provider, restartedStore, replacement, new FixedClock()).RunDue(default));
+            var persisted = await restartedStore.Observation(run.ObservationId.Value, default);
+            Assert.Equal(originalJson, System.Text.Json.JsonSerializer.Serialize(persisted, JsonDefaults.Options));
+            Assert.Equal("europe-economy", persisted!.Profile.Id);
+            Assert.Equal(new DateOnly(2027, 5, 1), persisted.Profile.OutboundDate);
+            Assert.Equal(new DateOnly(2027, 6, 15), persisted.Profile.ReturnDate);
+            Assert.Equal(RunStatus.Completed, (await restartedStore.Run(run.Id, default))!.Status);
+            Assert.Equal(2, provider.Calls);
+        }
+        finally
+        {
+            await using var drop = admin.CreateCommand($"DROP SCHEMA {schema} CASCADE");
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    [PostgresFact]
     public async Task BaselineRevisionOnlyAffectsNewObservations()
     {
         var settings = HistoricalSamplingTests.Settings();
@@ -75,7 +119,7 @@ public class ScheduledPostgresTests
             var service = new ScanService(provider, store, settings, clock);
 
             // Explicit Europe manual selection exercises the shipped baseline and advances scheduling.
-            var europe = await service.Run("europe-economy", default);
+            var europe = await service.Run("cdg-economy-2027-04-22", default);
             var observation = await store.Observation(europe.ObservationId!.Value, default);
             Assert.Equal(Classification.Deal, observation!.Assessment.Classification);
             Assert.Equal(AssessmentSource.ManualBaseline, observation.Assessment.Source);
@@ -84,7 +128,7 @@ public class ScheduledPostgresTests
 
             ScheduleState schedule;
             await using (var session = await store.OpenSession(default)) schedule = await session.ReadSchedule(default);
-            Assert.Equal(clock.Now, schedule.LastScans["europe-economy"]);
+            Assert.Equal(clock.Now, schedule.LastScans["cdg-economy-2027-04-22"]);
             Assert.True(schedule.NextDispatch > clock.Now);
 
             // Use a fresh pool to exercise persisted state rather than an in-memory service instance.

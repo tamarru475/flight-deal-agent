@@ -19,19 +19,19 @@ public class HistoricalSamplingTests
         Assert.False(settings.SchedulerEnabled);
         Assert.Equal(240, settings.MonthlyCreditLimit);
         Assert.Equal(10, settings.ReserveCredits);
-        Assert.Equal(23, settings.Profiles.Length);
+        Assert.Equal(25, settings.Profiles.Length);
         var active = settings.Profiles.Where(p => p.Active).ToArray();
-        Assert.Equal(19, active.Length);
-        Assert.Equal(2, active.Count(p => p.TargetIntervalHours == 56));
-        Assert.Equal(11, active.Count(p => p.TargetIntervalHours == 168));
+        Assert.Equal(21, active.Length);
+        Assert.Equal(1, active.Count(p => p.TargetIntervalHours == 56));
+        Assert.Equal(14, active.Count(p => p.TargetIntervalHours == 168));
         Assert.Equal(6, active.Count(p => p.TargetIntervalHours == 108));
         var worstCase = active.Sum(p => 2 * Math.Ceiling(31 * 24 / p.TargetIntervalHours));
-        Assert.Equal(250, worstCase);
+        Assert.Equal(252, worstCase);
         Assert.Equal(240, Budget.EffectiveLimit(settings));
         Assert.Equal(10, Budget.FreeAllowance - Budget.EffectiveLimit(settings));
         Assert.Equal(233.238095, active.Sum(p => 2 * 31 * 24 / p.TargetIntervalHours), 6);
         Assert.Equal(225.714286, active.Sum(p => 2 * 30 * 24 / p.TargetIntervalHours), 6);
-        Assert.All(settings.Profiles.Skip(2).Where(p => p.Priority == 20), p =>
+        Assert.All(settings.Profiles.Where(p => p.Priority == 20), p =>
         {
             Assert.Equal(20, p.Priority);
             Assert.Equal("AKL", p.Search.Origin);
@@ -54,20 +54,15 @@ public class HistoricalSamplingTests
     }
 
     [Fact]
-    public void ExistingNotificationScopesAndSchedulesRemainUnchanged()
+    public void TokyoNotificationScopeAndScheduleRemainUnchanged()
     {
         var settings = Settings();
         var tokyo = settings.Profiles[0];
-        var europe = settings.Profiles[1];
         Assert.Equal(100, tokyo.Priority);
-        Assert.Equal(90, europe.Priority);
         Assert.Equal(56, tokyo.TargetIntervalHours);
-        Assert.Equal(56, europe.TargetIntervalHours);
         // Captured from the deployed profiles before adding the optional local-night rule.
         Assert.Equal("EB8E12AA6A0904D71E10D71E9C614DCBA4D3056F2FCB140826151C3ED3390515", NotificationPolicy.Scope(tokyo.Search));
-        Assert.Equal("01ADE147066C654A5FF1950A95FC60C52D574FD18A166985420E607AA663D1CA", NotificationPolicy.Scope(europe.Search));
         Assert.Null(tokyo.Search.RequiredDestinationNights);
-        Assert.Null(europe.Search.RequiredDestinationNights);
     }
 
     [Theory]
@@ -94,7 +89,7 @@ public class HistoricalSamplingTests
     public void NewMarketsRemainUnclassifiedAndVisibleInDigest()
     {
         var settings = Settings();
-        var observations = settings.Profiles.Skip(2).Where(p => p.Active).Select(p =>
+        var observations = settings.Profiles.Where(p => p.Active && p.Priority != 90 && p.Search.Id != "tokyo-premium").Select(p =>
         {
             var outbound = Journey(p.Search, true);
             var inbound = Journey(p.Search, false);
